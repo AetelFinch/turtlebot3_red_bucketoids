@@ -17,6 +17,8 @@
   <url type="bugtracker">https://github.com/AetelFinch/turtlebot3_red_bucketoids/issues</url>
   <exec_depend>red_bucketoids_autorace_camera</exec_depend>
   <exec_depend>red_bucketoids_autorace_detect</exec_depend>
+  <exec_depend>red_bucketoids_autorace_driving</exec_depend>
+  <exec_depend>red_bucketoids_autorace_msgs</exec_depend>
   <buildtool_depend>catkin</buildtool_depend>
   <export><metapackage/></export>
 </package>
