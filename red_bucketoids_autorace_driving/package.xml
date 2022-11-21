@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>red_bucketoids_autorace_driving</name>
+  <version>1.1.0</version>
+  <description> 
+    TurtleBot3 AutoRace ROS package that TurtleBot3 Auto driving
+  </description>
+  <license>MIT</license>
+  <author email="maxchup30@gmail.com">Max Chuprov</author>
+  <author>Max Chuprov</author>
+  <maintainer email="maxchup30@gmail.com">Max Chuprov</maintainer>
+  <maintainer email="s.ilyasov@g.nsu.ru">Semyon Ilyasov</maintainer>
+  <maintainer email="r.derunets@g.nsu.ru">Roman Derunets</maintainer>
+  <url type="website">http://wiki.ros.org/turtlebot3_autorace</url>
+  <url type="emanual">http://turtlebot3.robotis.com</url>
+  <url type="repository">https://github.com/AetelFinch/turtlebot3_red_bucketoids</url>
+  <url type="bugtracker">https://github.com/AetelFinch/turtlebot3_red_bucketoids/issues</url>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>turtlebot3_autorace_msgs</depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>python-numpy</exec_depend>
+  <exec_depend>python-enum34</exec_depend>
+</package>
+
