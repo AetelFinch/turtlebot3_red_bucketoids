@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>red_bucketoids_autorace</name>
+  <name>red_bucketoids_autorace_camera</name>
   <version>1.1.0</version>
   <description>
-    TurtleBot3 AutoRace 2020 ROS 1 packages (meta package) from team "Red Bucketoids"
+    TurtleBot3 AutoRace ROS package that controls Raspberry Pi Camera, and process the image
   </description>
   <license>MIT</license>
   <author email="maxchup30@gmail.com">Max Chuprov</author>
@@ -15,8 +15,12 @@
   <url type="emanual">http://turtlebot3.robotis.com</url>
   <url type="repository">https://github.com/AetelFinch/turtlebot3_red_bucketoids</url>
   <url type="bugtracker">https://github.com/AetelFinch/turtlebot3_red_bucketoids/issues</url>
-  <exec_depend>red_bucketoids_autorace_camera</exec_depend>
-  <exec_depend>red_bucketoids_autorace_detect</exec_depend>
   <buildtool_depend>catkin</buildtool_depend>
-  <export><metapackage/></export>
+  <depend>dynamic_reconfigure</depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>python3-opencv</exec_depend>
+  <exec_depend>python-numpy</exec_depend>
+  <exec_depend>python-enum34</exec_depend>
 </package>
