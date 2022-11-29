@@ -1,0 +1,11 @@
+<launch>
+  <arg name="mode" default="calibration"/>
+
+  <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_autorace_2020.launch"/>
+  <include file="$(find red_bucketoids_autorace_camera)/launch/intrinsic_camera_calibration.launch"/>
+  <include file="$(find red_bucketoids_autorace_camera)/launch/extrinsic_camera_calibration.launch" pass_all_args="true"/>
+  
+  <node pkg="rqt_gui" type="rqt_gui" name="rqt_gui"/>
+  <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure"/>
+
+</launch>
