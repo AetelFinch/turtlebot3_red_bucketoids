@@ -19,37 +19,159 @@ class CoreManager:
         self.ros_package_path = os.path.dirname(os.path.realpath(__file__))
         self.ros_package_path = self.ros_package_path.replace('red_bucketoids_autorace_core/nodes', '')
 
-        self.traffic_light = rospy.Subscriber('/detect/traffic_light', UInt8, self.cbGreenLight, queue_size=1)
-        rospy.loginfo("Start core_manager node")
+        self.control_lane_is_move = rospy.Publisher('/control/lane/is_move', UInt8, queue_size=1)
+
+        self.is_mission_over = rospy.Subscriber('/mission/is_over', UInt8, self.cbMissionOver, queue_size=1)
+
+        self.missions = Enum("missions", "traffic_light intersection construction parking level_crossing tunnel finish")
+        self.current_mission = self.missions.traffic_light.value
+        self.current_mission_launch = None
+
+        self.actions = Enum("actions", "shutdown launch")
+
+        rospy.loginfo("core_manager - Start Core Manager")
         self.initRace()
+        self.fnLaunchMission()
 
 
     def initRace(self):
         self.launch_camera = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_camera/launch/extrinsic_camera_calibration.launch"])
-        self.launch_camera_launched = True
         self.launch_camera.start()
-        rospy.loginfo("Init extrinsic_camera_calibration node")
+        rospy.loginfo("core_manager - Launch extrinsic_camera_calibration node")
 
-        self.launch_detect_traffic_light = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_detect/launch/detect_traffic_light.launch"])
-        self.launch_detect_traffic_light_launched = True
-        self.launch_detect_traffic_light.start()
-        rospy.loginfo("Init detect_traffic_light node")
-
-
-    def cbGreenLight(self, msg: UInt8):
         self.launch_detect_lane = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_detect/launch/detect_lane.launch"])
-        self.launch_detect_lane_launched = True
         self.launch_detect_lane.start()
-        rospy.loginfo("Init detect_lane node")
+        rospy.loginfo("core_manager - Launch detect_lane node")
 
-        self.launch_driving_lane = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_lane.launch"])
-        self.launch_driving_lane_launched = True
-        self.launch_driving_lane.start()
-        rospy.loginfo("Init control_lane node")
+        self.launch_control_lane = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_lane.launch"])
+        self.launch_control_lane.start()
 
-        self.launch_detect_traffic_light_launched = False
-        self.launch_detect_traffic_light.shutdown()
-        rospy.loginfo("Shutdown detect_traffic_light node")
+        not_move = UInt8()
+        not_move.data = 0
+        self.control_lane_is_move.publish(not_move)
+        rospy.loginfo("core_manager - Launch control_lane node")
+
+
+    def cbMissionOver(self, msg: UInt8):
+        self.fnShutdownMission()
+        self.fnLaunchMission()
+
+
+    def fnLaunchMission(self):
+        if self.current_mission == self.missions.traffic_light.value:
+            rospy.loginfo("core_manager - Start Traffic Light Mission")
+            self.fnTrafficLight(self.actions.launch.value)
+
+        elif self.current_mission == self.missions.intersection.value:
+            rospy.loginfo("core_manager - Start Intersection Mission")
+            self.fnIntersection(self.actions.launch.value)
+
+        elif self.current_mission == self.missions.construction.value:
+            rospy.loginfo("core_manager - Start Construction Mission")
+            self.fnConstruction(self.actions.launch.value)
+
+        elif self.current_mission == self.missions.parking.value:
+            rospy.loginfo("core_manager - Start Parking Mission")
+            self.fnParking(self.actions.launch.value)
+
+        elif self.current_mission == self.missions.level_crossing.value:
+            rospy.loginfo("core_manager - Start Level Crossing Mission")
+            self.fnLevelCrossing(self.actions.launch.value)
+
+        elif self.current_mission == self.missions.tunnel.value:
+            rospy.loginfo("core_manager - Start Tunnel Mission")
+            self.fnTunnel(self.actions.launch.value)
+
+        elif self.current_mission == self.missions.finish.value:
+            rospy.loginfo("core_manager - Finish Autorace")
+            self.fnFinish()
+
+
+    def fnShutdownMission(self):
+        if self.current_mission == self.missions.traffic_light.value:
+            rospy.loginfo("core_manager - Shutdown Traffic Light Mission")
+            self.fnTrafficLight(self.actions.shutdown.value)
+            self.current_mission = self.missions.intersection.value
+
+        elif self.current_mission == self.missions.intersection.value:
+            rospy.loginfo("core_manager - Shutdown Intersection Mission")
+            self.fnIntersection(self.actions.shutdown.value)
+            self.current_mission = self.missions.construction.value
+
+        elif self.current_mission == self.missions.construction.value:
+            rospy.loginfo("core_manager - Shutdown Construction Mission")
+            self.fnConstruction(self.actions.shutdown.value)
+            self.current_mission = self.missions.parking.value
+
+        elif self.current_mission == self.missions.parking.value:
+            rospy.loginfo("core_manager - Shutdown Parking Mission")
+            self.fnParking(self.actions.shutdown.value)
+            self.current_mission = self.missions.level_crossing.value
+
+        elif self.current_mission == self.missions.level_crossing.value:
+            rospy.loginfo("core_manager - Shutdown Level Crossing Mission")
+            self.fnLevelCrossing(self.actions.shutdown.value)
+            self.current_mission = self.missions.tunnel.value
+
+        elif self.current_mission == self.missions.tunnel.value:
+            rospy.loginfo("core_manager - Shutdown Tunnel Mission")
+            self.fnTunnel(self.actions.shutdown.value)
+            self.current_mission = self.missions.finish.value
+
+
+    def fnTrafficLight(self, action):
+        if action == self.actions.launch.value:
+            self.launch_traffic_light = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/traffic_light.launch"])
+            self.launch_traffic_light.start()
+        elif action == self.actions.launch.value:
+            self.launch_traffic_light.shutdown()
+
+
+    def fnIntersection(self, action):
+        if action == self.actions.launch.value:
+            self.launch_intersection = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/intersection.launch"])
+            self.launch_intersection.start()
+        elif action == self.actions.launch.value:
+            self.launch_intersection.shutdown()
+
+
+    def fnConstruction(self, action):
+        if action == self.actions.launch.value:
+            self.launch_construction = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/construction.launch"])
+            self.launch_construction.start()
+        elif action == self.actions.launch.value:
+            self.launch_construction.shutdown()
+
+
+    def fnParking(self, action):
+        if action == self.actions.launch.value:
+            self.launch_parking = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/parking.launch"])
+            self.launch_parking.start()
+        elif action == self.actions.launch.value:
+            self.launch_parking.shutdown()
+
+
+    def fnLevelCrossing(self, action):
+        if action == self.actions.launch.value:
+            self.launch_level_crossing = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/level_crossing.launch"])
+            self.launch_level_crossing.start()
+        elif action == self.actions.launch.value:
+            self.launch_level_crossing.shutdown()
+
+
+    def fnTunnel(self, action):
+        if action == self.actions.launch.value:
+            self.launch_tunnel = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/tunnel.launch"])
+            self.launch_tunnel.start()
+        elif action == self.actions.launch.value:
+            self.launch_tunnel.shutdown()
+
+
+    def fnFinish(self):
+        not_move = UInt8()
+        not_move.data = 0
+        self.control_lane_is_move.publish(not_move)
+
 
     def main(self):
         rospy.spin()

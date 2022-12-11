@@ -4,13 +4,14 @@
 
 import rospy
 import numpy as np
-from std_msgs.msg import Float64
+from std_msgs.msg import UInt8, Float64
 from geometry_msgs.msg import Twist
 
 class ControlLane():
     def __init__(self):
         rospy.loginfo("Start control lane node")
         
+        self.sub_is_move = rospy.Subscriber('/control/lane/is_move', UInt8, self.cbIsMove, queue_size=1)
         self.sub_lane = rospy.Subscriber('/control/lane', Float64, self.cbFollowLane, queue_size = 1)
         self.sub_max_vel = rospy.Subscriber('/control/max_vel', Float64, self.cbGetMaxVel, queue_size = 1)
         self.pub_cmd_vel = rospy.Publisher('/control/cmd_vel', Twist, queue_size = 1)
@@ -18,12 +19,21 @@ class ControlLane():
         self.lastError = 0
         self.MAX_VEL = 0.1
 
+        self.is_move = 0
+
         rospy.on_shutdown(self.fnShutDown)
 
     def cbGetMaxVel(self, max_vel_msg):
         self.MAX_VEL = max_vel_msg.data
 
+    def cbIsMove(self, is_move_msg: UInt8):
+        self.is_move = is_move_msg.data
+
+
     def cbFollowLane(self, desired_center):
+        if not self.is_move:
+            return
+
         center = desired_center.data
 
         error = center - 500

@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="red_bucketoids_autorace_core" type="intersection_manager" name="intersection_manager" output="screen"/>
+</launch>
