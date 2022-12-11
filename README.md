@@ -1,6 +1,22 @@
-## Instruction
-
+## Как запустить трассу с нуля:
 - roslaunch turtlebot3_gazebo turtlebot3_autorace_2020.launch
-- roslaunch red_bucketoids_autorace_camera intrinsic_camera_calibration.launch
 - roslaunch red_bucketoids_autorace_core red_bucketoids_autorace_core.launch
 - roslaunch red_bucketoids_autorace_core turtlebot3_autorace_mission.launch
+
+## Как запустить трассу, начиная с произвольной трассы:
+1) Поставить робота на нужную позицию на трассе
+2) Поменять значение self.current_mission в core_manager:
+	```python
+	self.current_mission = self.missions.{required mission}.value
+	```
+3) Запустить соревнование
+
+## Как добавить модуль, отвечающий за прохождение миссии:
+- Написать класс {Mission}Manager в файле red_bucketoids_autorace_core/nodes/{mission}_manager, который управляет роботом во время прохождения миссии (пример реализации можно посмотреть в traffic_light_manager)
+- Проверить, что прохождение препятствия работает корректно, и по возможности проверить, чтобы вся трасса проходилась нормально
+
+## Как написать класс {Mission}Manager:
+1) Если необходимо, то можно на время отключить движение робота вдоль линий, отправив в топик '/control/lane/is_move' сообщение со значением 0.
+2) Логику прохождения препятствия лучше выносить в отдельный модуль, или использовать уже существующий. Класс {Mission}Manager лишь запускает необходимые модули и читает сообщения из топиков, в которые они публикуются.
+3) По окончание миссии следует уничтожить все созданные в данном классе узлы, чтобы они не нагружали систему и отправить в топик '/mission/is_over' сообщение со значением 1, которое будет означать прохождение миссии. Сразу после этого, {Mission}Manager будет уничтожен и будет запущен следующий {Mission}Manager
+4) Не забывайте логировать каждое логически обособленное действие, чтобы было легче дебажить и отслеживать прохождение трассы
