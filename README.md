@@ -1,0 +1,6 @@
+## Instruction
+
+- roslaunch turtlebot3_gazebo turtlebot3_autorace_2020.launch
+- roslaunch red_bucketoids_autorace_camera intrinsic_camera_calibration.launch
+- roslaunch red_bucketoids_autorace_core red_bucketoids_autorace_core.launch
+- roslaunch red_bucketoids_autorace_core turtlebot3_autorace_mission.launch
