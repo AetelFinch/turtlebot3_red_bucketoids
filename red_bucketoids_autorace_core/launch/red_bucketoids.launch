@@ -1,9 +1,0 @@
-<launch>
-  <arg name="mission" default="traffic_light" doc="mission type [traffic_light, intersection, construction, parking, level_crossing, tunnel]"/>
-  
-  <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_autorace_2020.launch"/>
-  <include file="$(find turtlebot3_autorace_camera)/launch/intrinsic_camera_calibration.launch"/>
-  <include file="$(find turtlebot3_autorace_core)/launch/turtlebot3_autorace_core.launch" pass_all_args="true"/>
-  <include file="$(find turtlebot3_autorace_core)/launch/turtlebot3_autorace_mission.launch"/>
-
-</launch>

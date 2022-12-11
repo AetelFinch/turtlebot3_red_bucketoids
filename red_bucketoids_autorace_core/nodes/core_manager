@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+import subprocess
+import os
+import sys
+
+import numpy as np
+import rospy, roslaunch
+
+from enum import Enum
+from std_msgs.msg import UInt8, Float64
+
+
+class CoreManager:
+    def __init__(self):
+        self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+        self.ros_package_path = os.path.dirname(os.path.realpath(__file__))
+        self.ros_package_path = self.ros_package_path.replace('red_bucketoids_autorace_core/nodes', '')
+
+        self.traffic_light = rospy.Subscriber('/detect/traffic_light', UInt8, self.cbGreenLight, queue_size=1)
+        rospy.loginfo("Start core_manager node")
+        self.initRace()
+
+
+    def initRace(self):
+        self.launch_camera = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_camera/launch/extrinsic_camera_calibration.launch"])
+        self.launch_camera_launched = True
+        self.launch_camera.start()
+        rospy.loginfo("Init extrinsic_camera_calibration node")
+
+        self.launch_detect_traffic_light = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_detect/launch/detect_traffic_light.launch"])
+        self.launch_detect_traffic_light_launched = True
+        self.launch_detect_traffic_light.start()
+        rospy.loginfo("Init detect_traffic_light node")
+
+
+    def cbGreenLight(self, msg: UInt8):
+        self.launch_detect_lane = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_detect/launch/detect_lane.launch"])
+        self.launch_detect_lane_launched = True
+        self.launch_detect_lane.start()
+        rospy.loginfo("Init detect_lane node")
+
+        self.launch_driving_lane = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_lane.launch"])
+        self.launch_driving_lane_launched = True
+        self.launch_driving_lane.start()
+        rospy.loginfo("Init control_lane node")
+
+        self.launch_detect_traffic_light_launched = False
+        self.launch_detect_traffic_light.shutdown()
+        rospy.loginfo("Shutdown detect_traffic_light node")
+
+    def main(self):
+        rospy.spin()
+
+
+if __name__ == '__main__':
+    rospy.init_node('core_manager')
+    node = CoreManager()
+    node.main()

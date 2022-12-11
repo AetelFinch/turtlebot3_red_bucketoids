@@ -11,6 +11,7 @@ from sensor_msgs.msg import Image, CompressedImage
 from dynamic_reconfigure.server import Server
 from red_bucketoids_autorace_detect.cfg import DetectLaneParamsConfig
 
+
 class DetectLane():
     def __init__(self):
         self.hue_white_l = rospy.get_param("~detect/lane/white/hue_l")
@@ -447,22 +448,16 @@ class DetectLane():
         final = cv2.addWeighted(cv_image, 1, color_warp, 0.2, 0)
         final = cv2.addWeighted(final, 1, color_warp_lines, 1, 0)
 
+        if self.is_center_x_exist == True:
+            # publishes lane center
+            msg_desired_center = Float64()
+            msg_desired_center.data = centerx.item(350)
+            self.pub_lane.publish(msg_desired_center)
+     
         if self.pub_image_type == "compressed":
-            if self.is_center_x_exist == True:
-                # publishes lane center
-                msg_desired_center = Float64()
-                msg_desired_center.data = centerx.item(350)
-                self.pub_lane.publish(msg_desired_center)
-
             self.pub_image_lane.publish(self.cvBridge.cv2_to_compressed_imgmsg(final, "jpg"))
 
         elif self.pub_image_type == "raw":
-            if self.is_center_x_exist == True:
-                # publishes lane center
-                msg_desired_center = Float64()
-                msg_desired_center.data = centerx.item(350)
-                self.pub_lane.publish(msg_desired_center)
-
             self.pub_image_lane.publish(self.cvBridge.cv2_to_imgmsg(final, "bgr8"))
 
     def main(self):

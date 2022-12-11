@@ -8,4 +8,4 @@
   <node pkg="rqt_gui" type="rqt_gui" name="rqt_gui"/>
   <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure"/>
 
-</launch>
+</launch> 

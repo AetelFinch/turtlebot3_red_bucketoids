@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="red_bucketoids_autorace_core" type="core_manager" name="core_manager" output="screen"/>
+</launch>

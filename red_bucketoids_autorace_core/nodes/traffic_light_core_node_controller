@@ -54,7 +54,7 @@ class CoreNodeController():
   
     def fnControlNode(self): 
         # lane_following
-        if self.current_mode == self.CurrentMode.lane_following.value:
+        if self.current_mode == self.CurrentMode.lane_following.value:            
             rospy.loginfo("New trigger for lane_following")
 
             self.fnLaunch(self.Launcher.launch_camera_ex_calib.value, True)

@@ -14,62 +14,45 @@ from red_bucketoids_autorace_detect.cfg import DetectTrafficLightParamsConfig
 
 class DetectTrafficLight():
     def __init__(self):
-        self.hue_red_l = rospy.get_param("~detect/lane/red/hue_l", 0)
-        self.hue_red_h = rospy.get_param("~detect/lane/red/hue_h", 26)
-        self.saturation_red_l = rospy.get_param("~detect/lane/red/saturation_l", 239)
-        self.saturation_red_h = rospy.get_param("~detect/lane/red/saturation_h", 255)
-        self.lightness_red_l = rospy.get_param("~detect/lane/red/lightness_l", 123)
-        self.lightness_red_h = rospy.get_param("~detect/lane/red/lightness_h", 250)
+        colors = ["red", "yellow", "green"]
+        options = ["hue", "saturation", "lightness"]
+        borders = ["l", "h"]
 
-        self.hue_yellow_l = rospy.get_param("~detect/lane/yellow/hue_l", 19)
-        self.hue_yellow_h = rospy.get_param("~detect/lane/yellow/hue_h", 33)
-        self.saturation_yellow_l = rospy.get_param("~detect/lane/yellow/saturation_l", 237)
-        self.saturation_yellow_h = rospy.get_param("~detect/lane/yellow/saturation_h", 255)
-        self.lightness_yellow_l = rospy.get_param("~detect/lane/yellow/lightness_l", 231)
-        self.lightness_yellow_h = rospy.get_param("~detect/lane/yellow/lightness_h", 255)
+        self.config = {color: {option: {border: None for border in borders} for option in options} for color in colors}
 
-        self.hue_green_l = rospy.get_param("~detect/lane/green/hue_l", 40)
-        self.hue_green_h = rospy.get_param("~detect/lane/green/hue_h", 113)
-        self.saturation_green_l = rospy.get_param("~detect/lane/green/saturation_l", 210)
-        self.saturation_green_h = rospy.get_param("~detect/lane/green/saturation_h", 255)
-        self.lightness_green_l = rospy.get_param("~detect/lane/green/lightness_l", 131)
-        self.lightness_green_h = rospy.get_param("~detect/lane/green/lightness_h", 255)
+        self.config["red"]["hue"]["l"] = rospy.get_param("~detect/lane/red/hue_l", 0)
+        self.config["red"]["hue"]["h"] = rospy.get_param("~detect/lane/red/hue_h", 26)
+        self.config["red"]["saturation"]["l"] = rospy.get_param("~detect/lane/red/saturation_l", 239)
+        self.config["red"]["saturation"]["h"] = rospy.get_param("~detect/lane/red/saturation_h", 255)
+        self.config["red"]["lightness"]["l"] = rospy.get_param("~detect/lane/red/lightness_l", 123)
+        self.config["red"]["lightness"]["h"] = rospy.get_param("~detect/lane/red/lightness_h", 250)
+
+        self.config["yellow"]["hue"]["l"] = rospy.get_param("~detect/lane/yellow/hue_l", 19)
+        self.config["yellow"]["hue"]["h"] = rospy.get_param("~detect/lane/yellow/hue_h", 33)
+        self.config["yellow"]["saturation"]["l"] = rospy.get_param("~detect/lane/yellow/saturation_l", 237)
+        self.config["yellow"]["saturation"]["h"] = rospy.get_param("~detect/lane/yellow/saturation_h", 255)
+        self.config["yellow"]["lightness"]["l"] = rospy.get_param("~detect/lane/yellow/lightness_l", 231)
+        self.config["yellow"]["lightness"]["h"] = rospy.get_param("~detect/lane/yellow/lightness_h", 255)
+
+        self.config["green"]["hue"]["l"] = rospy.get_param("~detect/lane/green/hue_l", 40)
+        self.config["green"]["hue"]["h"] = rospy.get_param("~detect/lane/green/hue_h", 113)
+        self.config["green"]["saturation"]["l"] = rospy.get_param("~detect/lane/green/saturation_l", 210)
+        self.config["green"]["saturation"]["h"] = rospy.get_param("~detect/lane/green/saturation_h", 255)
+        self.config["green"]["lightness"]["l"] = rospy.get_param("~detect/lane/green/lightness_l", 131)
+        self.config["green"]["lightness"]["h"] = rospy.get_param("~detect/lane/green/lightness_h", 255)
 
         self.is_calibration_mode = rospy.get_param("~is_detection_calibration_mode", False)
         if self.is_calibration_mode == True:
             srv_detect_lane = Server(DetectTrafficLightParamsConfig, self.cbGetDetectTrafficLightParam)
 
-        self.sub_image_type = "compressed"          # "compressed" / "raw"
-        self.pub_image_type = "compressed"          # "compressed" / "raw"
-
         self.counter = 1
         
-        if self.sub_image_type == "compressed":
-            # subscribes compressed image
-            self.sub_image_original = rospy.Subscriber('/detect/image_input/compressed', CompressedImage, self.cbGetImage, queue_size = 1)
-        elif self.sub_image_type == "raw":
-            # subscribes raw image
-            self.sub_image_original = rospy.Subscriber('/detect/image_input', Image, self.cbGetImage, queue_size = 1)
- 
-        if self.pub_image_type == "compressed":
-            # publishes compensated image in compressed type 
-            self.pub_image_traffic_light = rospy.Publisher('/detect/image_output/compressed', CompressedImage, queue_size = 1)
-        elif self.pub_image_type == "raw":
-            # publishes compensated image in raw type
-            self.pub_image_traffic_light = rospy.Publisher('/detect/image_output', Image, queue_size = 1)
+        self.sub_image_original = rospy.Subscriber('/detect/image_input/compressed', CompressedImage, self.cbGetImage, queue_size = 1)
+        self.pub_image_traffic_light = rospy.Publisher('/detect/image_output/compressed', CompressedImage, queue_size = 1)
 
         if self.is_calibration_mode == True:
-            if self.pub_image_type == "compressed":
-                # publishes light image in compressed type 
-                self.pub_image_red_light = rospy.Publisher('/detect/image_output_sub1/compressed', CompressedImage, queue_size = 1)
-                self.pub_image_yellow_light = rospy.Publisher('/detect/image_output_sub2/compressed', CompressedImage, queue_size = 1)
-                self.pub_image_green_light = rospy.Publisher('/detect/image_output_sub3/compressed', CompressedImage, queue_size = 1)
-            elif self.pub_image_type == "raw":
-                # publishes light image in raw type
-                self.pub_image_red_light = rospy.Publisher('/detect/image_output_sub1', Image, queue_size = 1)
-                self.pub_image_yellow_light = rospy.Publisher('/detect/image_output_sub2', Image, queue_size = 1)
-                self.pub_image_green_light = rospy.Publisher('/detect/image_output_sub3', Image, queue_size = 1)
-
+            # publishes light image in compressed type 
+            self.pub_image_colors_light = {color: rospy.Publisher(f'/detect/image_output_sub{colors.index(color) + 1}/compressed', CompressedImage, queue_size = 1) for color in colors}
 
         self.sub_traffic_light_finished = rospy.Subscriber('/control/traffic_light_finished', UInt8, self.cbTrafficLightFinished, queue_size = 1)
 
@@ -77,7 +60,7 @@ class DetectTrafficLight():
         self.pub_parking_start = rospy.Publisher('/control/traffic_light_start', UInt8, queue_size = 1)
         self.pub_traffic_light = rospy.Publisher('/detect/traffic_light', UInt8, queue_size=1)
 
-        self.CurrentMode = Enum('CurrentMode', 'idle lane_following traffic_light')
+        self.CurrentMode = Enum('CurrentMode', 'green_light')
     
         self.cvBridge = CvBridge()
         self.cv_image = None
@@ -123,26 +106,26 @@ class DetectTrafficLight():
         rospy.loginfo("lightness_green_l : %d", config.lightness_green_l)
         rospy.loginfo("lightness_green_h : %d", config.lightness_green_h)
 
-        self.hue_red_l = config.hue_red_l
-        self.hue_red_h = config.hue_red_h
-        self.saturation_red_l = config.saturation_red_l
-        self.saturation_red_h = config.saturation_red_h
-        self.lightness_red_l = config.lightness_red_l
-        self.lightness_red_h = config.lightness_red_h
+        self.config["red"]["hue"]["l"] = config.hue_red_l
+        self.config["red"]["hue"]["h"] = config.hue_red_h
+        self.config["red"]["saturation"]["l"] = config.saturation_red_l
+        self.config["red"]["saturation"]["h"] = config.saturation_red_h
+        self.config["red"]["lightness"]["l"] = config.lightness_red_l
+        self.config["red"]["lightness"]["h"] = config.lightness_red_h
 
-        self.hue_yellow_l = config.hue_yellow_l
-        self.hue_yellow_h = config.hue_yellow_h
-        self.saturation_yellow_l = config.saturation_yellow_l
-        self.saturation_yellow_h = config.saturation_yellow_h
-        self.lightness_yellow_l = config.lightness_yellow_l
-        self.lightness_yellow_h = config.lightness_yellow_h
+        self.config["yellow"]["hue"]["l"] = config.hue_yellow_l
+        self.config["yellow"]["hue"]["h"] = config.hue_yellow_h
+        self.config["yellow"]["saturation"]["l"] = config.saturation_yellow_l
+        self.config["yellow"]["saturation"]["h"] = config.saturation_yellow_h
+        self.config["yellow"]["lightness"]["l"] = config.lightness_yellow_l
+        self.config["yellow"]["lightness"]["h"] = config.lightness_yellow_h
 
-        self.hue_green_l = config.hue_green_l
-        self.hue_green_h = config.hue_green_h
-        self.saturation_green_l = config.saturation_green_l
-        self.saturation_green_h = config.saturation_green_h
-        self.lightness_green_l = config.lightness_green_l
-        self.lightness_green_h = config.lightness_green_h
+        self.config["green"]["hue"]["l"] = config.hue_green_l
+        self.config["green"]["hue"]["h"] = config.hue_green_h
+        self.config["green"]["saturation"]["l"] = config.saturation_green_l
+        self.config["green"]["saturation"]["h"] = config.saturation_green_h
+        self.config["green"]["lightness"]["l"] = config.lightness_green_l
+        self.config["green"]["lightness"]["h"] = config.lightness_green_h
 
         return config
 
@@ -155,16 +138,14 @@ class DetectTrafficLight():
         else:
             self.counter = 1
 
-        if self.sub_image_type == "compressed":
-            np_arr = np.frombuffer(image_msg.data, np.uint8)
-            self.cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-        else:
-            self.cv_image = self.cvBridge.imgmsg_to_cv2(image_msg, "bgr8")
+        np_arr = np.frombuffer(image_msg.data, np.uint8)
+        self.cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
         self.is_image_available = True
 
+
     def fnFindTrafficLight(self):
-        cv_image_mask = self.fnMaskGreenTrafficLight()
+        cv_image_mask = self.fnMaskColorTrafficLight("green")
         cv_image_mask = cv2.GaussianBlur(cv_image_mask,(5,5),0)
 
         status1 = self.fnFindCircleOfTrafficLight(cv_image_mask, 'green')
@@ -175,7 +156,7 @@ class DetectTrafficLight():
         else:
             self.green_count = 0
         
-            cv_image_mask = self.fnMaskYellowTrafficLight()
+            cv_image_mask = self.fnMaskColorTrafficLight("yellow")
             cv_image_mask = cv2.GaussianBlur(cv_image_mask,(5,5),0)
 
             status2 = self.fnFindCircleOfTrafficLight(cv_image_mask, 'yellow')
@@ -185,7 +166,7 @@ class DetectTrafficLight():
             else:
                 self.yellow_count = 0
 
-                cv_image_mask = self.fnMaskRedTrafficLight()
+                cv_image_mask = self.fnMaskColorTrafficLight("red")
                 cv_image_mask = cv2.GaussianBlur(cv_image_mask,(5,5),0)
 
                 status3 = self.fnFindCircleOfTrafficLight(cv_image_mask, 'red')
@@ -203,7 +184,7 @@ class DetectTrafficLight():
             rospy.loginfo("GREEN")
             cv2.putText(self.cv_image,"GREEN", (self.point_col, self.point_low), cv2.FONT_HERSHEY_DUPLEX, 0.5, (80, 255, 0))
             msg_sign = UInt8()
-            msg_sign.data = self.CurrentMode.lane_following.value
+            msg_sign.data = self.CurrentMode.green_light.value
 
             self.pub_traffic_light.publish(msg_sign)
             self.is_traffic_light_finished = True
@@ -222,121 +203,41 @@ class DetectTrafficLight():
             self.off_traffic = True
             cv2.putText(self.cv_image,"STOP", (self.point_col, self.point_low), cv2.FONT_HERSHEY_DUPLEX, 0.5, (0, 0, 255))
 
-        if self.pub_image_type == "compressed":
-            # publishes traffic light image in compressed type
-            self.pub_image_traffic_light.publish(self.cvBridge.cv2_to_compressed_imgmsg(self.cv_image, "jpg"))
+        # publishes traffic light image in compressed type
+        self.pub_image_traffic_light.publish(self.cvBridge.cv2_to_compressed_imgmsg(self.cv_image, "jpg"))
 
-        elif self.pub_image_type == "raw":
-            # publishes traffic light image in raw type
-            self.pub_image_traffic_light.publish(self.cvBridge.cv2_to_imgmsg(self.cv_image, "bgr8"))
 
-    def fnMaskRedTrafficLight(self):
+    def fnMaskColorTrafficLight(self, color):
         image = np.copy(self.cv_image)
 
         # Convert BGR to HSV
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-        Hue_l = self.hue_red_l
-        Hue_h = self.hue_red_h
-        Saturation_l = self.saturation_red_l
-        Saturation_h = self.saturation_red_h
-        Lightness_l = self.lightness_red_l
-        Lightness_h = self.lightness_red_h
+        Hue_l = self.config[color]["hue"]["l"]
+        Hue_h = self.config[color]["hue"]["h"]
+        Saturation_l = self.config[color]["saturation"]["l"]
+        Saturation_h = self.config[color]["saturation"]["h"]
+        Lightness_l = self.config[color]["lightness"]["l"]
+        Lightness_h = self.config[color]["lightness"]["h"]
 
-        # define range of red color in HSV
-        lower_red = np.array([Hue_l, Saturation_l, Lightness_l])
-        upper_red = np.array([Hue_h, Saturation_h, Lightness_h])
+        # define range of color in HSV
+        lower_color = np.array([Hue_l, Saturation_l, Lightness_l])
+        upper_color = np.array([Hue_h, Saturation_h, Lightness_h])
 
-        # Threshold the HSV image to get only red colors
-        mask = cv2.inRange(hsv, lower_red, upper_red)
-
-        # Bitwise-AND mask and original image
-        res = cv2.bitwise_and(image, image, mask = mask)
-
-        if self.is_calibration_mode == True:
-            if self.pub_image_type == "compressed":
-                # publishes red light filtered image in compressed type
-                self.pub_image_red_light.publish(self.cvBridge.cv2_to_compressed_imgmsg(mask, "jpg"))
-
-            elif self.pub_image_type == "raw":
-                # publishes red light filtered image in raw type
-                self.pub_image_red_light.publish(self.cvBridge.cv2_to_imgmsg(mask, "mono8"))
-
-        mask = cv2.bitwise_not(mask)
-
-        return mask
-
-    def fnMaskYellowTrafficLight(self):
-        image = np.copy(self.cv_image)
-
-        # Convert BGR to HSV
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-        Hue_l = self.hue_yellow_l
-        Hue_h = self.hue_yellow_h
-        Saturation_l = self.saturation_yellow_l
-        Saturation_h = self.saturation_yellow_h
-        Lightness_l = self.lightness_yellow_l
-        Lightness_h = self.lightness_yellow_h
-
-        # define range of yellow color in HSV
-        lower_yellow = np.array([Hue_l, Saturation_l, Lightness_l])
-        upper_yellow = np.array([Hue_h, Saturation_h, Lightness_h])
-
-        # Threshold the HSV image to get only yellow colors
-        mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+        # Threshold the HSV image to get colors
+        mask = cv2.inRange(hsv, lower_color, upper_color)
 
         # Bitwise-AND mask and original image
         res = cv2.bitwise_and(image, image, mask = mask)
 
         if self.is_calibration_mode == True:
-            if self.pub_image_type == "compressed":
-                # publishes yellow light filtered image in compressed type
-                self.pub_image_yellow_light.publish(self.cvBridge.cv2_to_compressed_imgmsg(mask, "jpg"))
-
-            elif self.pub_image_type == "raw":
-                # publishes yellow light filtered image in raw type
-                self.pub_image_yellow_light.publish(self.cvBridge.cv2_to_imgmsg(mask, "mono8"))
+            # publishes color light filtered image in compressed type
+            self.pub_image_colors_light[color].publish(self.cvBridge.cv2_to_compressed_imgmsg(mask, "jpg"))
 
         mask = cv2.bitwise_not(mask)
 
         return mask
 
-    def fnMaskGreenTrafficLight(self):
-        image = np.copy(self.cv_image)
-
-        # Convert BGR to HSV
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-        Hue_l = self.hue_green_l
-        Hue_h = self.hue_green_h
-        Saturation_l = self.saturation_green_l
-        Saturation_h = self.saturation_green_h
-        Lightness_l = self.lightness_green_l
-        Lightness_h = self.lightness_green_h
-
-        # define range of green color in HSV
-        lower_green = np.array([Hue_l, Saturation_l, Lightness_l])
-        upper_green = np.array([Hue_h, Saturation_h, Lightness_h])
-
-        # Threshold the HSV image to get only green colors
-        mask = cv2.inRange(hsv, lower_green, upper_green)
-
-        # Bitwise-AND mask and original image
-        res = cv2.bitwise_and(image, image, mask = mask)
-
-        if self.is_calibration_mode == True:
-            if self.pub_image_type == "compressed":
-                # publishes green light filtered image in compressed type
-                self.pub_image_green_light.publish(self.cvBridge.cv2_to_compressed_imgmsg(mask, "jpg"))
-
-            elif self.pub_image_type == "raw":
-                # publishes green light filtered image in raw type
-                self.pub_image_green_light.publish(self.cvBridge.cv2_to_imgmsg(mask, "mono8"))
-
-        mask = cv2.bitwise_not(mask)
-
-        return mask
 
     def fnFindCircleOfTrafficLight(self, mask, find_color):
         status = 0
