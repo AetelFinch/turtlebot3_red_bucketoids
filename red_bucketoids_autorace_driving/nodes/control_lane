@@ -27,11 +27,14 @@ class ControlLane():
         self.MAX_VEL = max_vel_msg.data
 
     def cbIsMove(self, is_move_msg: UInt8):
+        rospy.loginfo(f"control_lane - Set moving state to {is_move_msg.data}")
         self.is_move = is_move_msg.data
 
 
     def cbFollowLane(self, desired_center):
-        if not self.is_move:
+        if self.is_move == 0:
+            twist = Twist()
+            self.pub_cmd_vel.publish(twist)
             return
 
         center = desired_center.data

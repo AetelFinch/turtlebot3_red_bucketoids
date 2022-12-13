@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-import subprocess
 import os
-import sys
 
 import numpy as np
 import rospy, roslaunch
@@ -40,9 +38,9 @@ class TrafficLightManager:
 
 
     def cbGreenLight(self, msg: UInt8):
-        not_move_msg = UInt8()
-        not_move_msg.data = 1
-        self.control_lane_is_move.publish(not_move_msg)
+        move_msg = UInt8()
+        move_msg.data = 1
+        self.control_lane_is_move.publish(move_msg)
         rospy.loginfo("traffic_light_manager -  Turn Up control_lane")
 
         self.launch_detect_traffic_light.shutdown()
