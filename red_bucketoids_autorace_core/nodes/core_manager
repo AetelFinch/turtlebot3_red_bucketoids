@@ -48,6 +48,7 @@ class CoreManager:
         self.launch_control_lane = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_lane.launch"])
         self.launch_control_lane.start()
 
+        rospy.sleep(1)
         not_move = UInt8()
         not_move.data = 0
         self.control_lane_is_move.publish(not_move)

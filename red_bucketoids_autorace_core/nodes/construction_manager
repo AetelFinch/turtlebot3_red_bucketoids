@@ -56,12 +56,12 @@ class ConstructionManager:
         move_msg = UInt8()
         move_msg.data = 1
         self.control_lane_is_move.publish(move_msg)
-        rospy.loginfo("traffic_light_manager -  Turn Up control_lane")
+        rospy.loginfo("construction_manager -  Turn Up control_lane")
 
+        rospy.loginfo("construction_manager - Send mission over message")
         mission_over = UInt8()
         mission_over.data = 1
         self.is_mission_over.publish(mission_over)
-        rospy.loginfo("construction_manager - Send mission over message")
 
 
     def main(self):

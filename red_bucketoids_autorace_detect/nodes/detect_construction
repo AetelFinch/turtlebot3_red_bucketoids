@@ -12,8 +12,11 @@ from red_bucketoids_autorace_msgs.msg import MovingParam
 
 class DetectContruction:
     def __init__(self):
+        self.is_find_obstacle = False
+        self.num_current_step = 0
+
         self.sub_scan_obstacle = rospy.Subscriber('/scan', LaserScan, self.cbFindObstacle, queue_size=1)
-        self.sub_moving_complete = rospy.Subscriber('/control/moving/complete', UInt8, self.cbCompleteMoving, queue_size=1)
+        self.sub_moving_complete = rospy.Subscriber('/control/moving/complete', UInt8, self.cbMovingComplete, queue_size=1)
 
         self.control_lane_is_move = rospy.Publisher('/control/lane/is_move', UInt8, queue_size=1)
         self.pub_moving_state = rospy.Publisher('/control/moving/state', MovingParam, queue_size = 1)
@@ -31,9 +34,6 @@ class DetectContruction:
             ("left", 90),
             ("exit",)
         ]
-        self.num_current_step = 0
-
-        self.is_find_obstacle = False
 
 
     def cbFindObstacle(self, scan):
@@ -61,7 +61,7 @@ class DetectContruction:
                 break
 
 
-    def cbCompleteMoving(self, msg: UInt8):
+    def cbMovingComplete(self, msg: UInt8):
         rospy.loginfo(f"detect_contruction - Complete {self.steps[self.num_current_step - 1]} moving")
 
         if msg.data == self.type_of_state.finish.value:
