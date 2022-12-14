@@ -19,7 +19,6 @@ class ControlMoving():
         self.sub_odom = rospy.Subscriber('/odom', Odometry, self.cbOdom, queue_size=1)
 
         self.pub_cmd_vel = rospy.Publisher('/cmd_vel', Twist, queue_size = 1)
-        # self.pub_max_vel = rospy.Publisher('/control/max_vel', Float64, queue_size = 1)
         self.pub_moving_complete = rospy.Publisher('/control/moving/complete', UInt8, queue_size = 1)
 
         #moving type enum
@@ -50,10 +49,6 @@ class ControlMoving():
 
         self.test = math.radians(90)
      
-        # msg_pub_max_vel = Float64()
-        # msg_pub_max_vel.data = 0.05
-        # self.pub_max_vel.publish(msg_pub_max_vel)
-
         loop_rate = rospy.Rate(100) # 10hz
         while not rospy.is_shutdown():
             if self.is_step_left == True:
@@ -239,7 +234,6 @@ class ControlMoving():
 
         err_pos = math.sqrt((self.current_pos_x - self.start_pos_x) ** 2 + (self.current_pos_y - self.start_pos_y) ** 2) - desired_dist
     
-        # rospy.loginfo("error_pos = %f", err_pos)
         Kp = 0.04
         Kd = 0.05
 

@@ -113,30 +113,6 @@ class DetectSign():
             matches_construction = None
             rospy.loginfo("not found")
       
-        # if image_out_num == 1:
-        #     if self.pub_image_type == "compressed":
-        #         # publishes traffic sign image in compressed type
-        #         self.pub_image_traffic_sign.publish(self.cvBridge.cv2_to_compressed_imgmsg(cv_image_input, "jpg"))
-
-        #     elif self.pub_image_type == "raw":
-        #         # publishes traffic sign image in raw type
-        #         self.pub_image_traffic_sign.publish(self.cvBridge.cv2_to_imgmsg(cv_image_input, "bgr8"))
-
-        # elif image_out_num == 2:
-        #     draw_params_construction = dict(matchColor = (255,0,0), # draw matches in green color
-        #                 singlePointColor = None,
-        #                 matchesMask = matches_construction, # draw only inliers
-        #                 flags = 2)
-
-        #     final_construction = cv2.drawMatches(cv_image_input,kp1,self.img_construction,self.kp_construction,good_construction,None,**draw_params_construction)
-
-        #     if self.pub_image_type == "compressed":
-        #         # publishes traffic sign image in compressed type
-        #         self.pub_image_traffic_sign.publish(self.cvBridge.cv2_to_compressed_imgmsg(final_construction, "jpg"))
-
-        #     elif self.pub_image_type == "raw":
-        #         # publishes traffic sign image in raw type
-        #         self.pub_image_traffic_sign.publish(self.cvBridge.cv2_to_imgmsg(final_construction, "bgr8"))
 
     def main(self):
         rospy.spin()
