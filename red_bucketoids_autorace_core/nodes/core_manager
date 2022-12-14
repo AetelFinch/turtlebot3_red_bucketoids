@@ -41,6 +41,10 @@ class CoreManager:
         self.launch_detect_lane.start()
         rospy.loginfo("core_manager - Launch detect_lane node")
 
+        self.launch_control_moving = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_moving.launch"])
+        self.launch_control_moving.start()
+        rospy.loginfo("core_manager - Launch control_moving node")
+
         self.launch_control_lane = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_lane.launch"])
         self.launch_control_lane.start()
 

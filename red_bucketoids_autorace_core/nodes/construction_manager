@@ -48,17 +48,10 @@ class ConstructionManager:
         self.launch_construction.start()
         rospy.loginfo("construction_manager - Launch detect_construction node")
 
-        self.launch_control_moving = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_moving.launch"])
-        self.launch_control_moving.start()
-        rospy.loginfo("construction_manager - Launch control_moving node")
-
 
     def cbConstructionExit(self, msg: UInt8):
         self.launch_construction.shutdown()
         rospy.loginfo("construction_manager - Shutdown detect_construction node")
-
-        self.launch_control_moving.shutdown()
-        rospy.loginfo("construction_manager - Shutdown control_moving node")
 
         move_msg = UInt8()
         move_msg.data = 1
