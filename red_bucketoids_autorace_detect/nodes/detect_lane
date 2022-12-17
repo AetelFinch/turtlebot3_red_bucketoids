@@ -14,6 +14,15 @@ from red_bucketoids_autorace_detect.cfg import DetectLaneParamsConfig
 
 class DetectLane():
     def __init__(self):
+        self.counter = 1
+        self.cvBridge = CvBridge()
+
+        self.window_width = 1000.
+        self.window_height = 600.
+
+        self.reliability_white_line = 100
+        self.reliability_yellow_line = 100
+
         self.hue_white_l = rospy.get_param("~detect/lane/white/hue_l")
         self.hue_white_h = rospy.get_param("~detect/lane/white/hue_h")
         self.saturation_white_l = rospy.get_param("~detect/lane/white/saturation_l")
@@ -67,15 +76,6 @@ class DetectLane():
         # subscribes state : white line reliability
         self.pub_white_line_reliability = rospy.Publisher('/detect/white_line_reliability', UInt8, queue_size=1)
  
-        self.cvBridge = CvBridge()
-
-        self.counter = 1
-
-        self.window_width = 1000.
-        self.window_height = 600.
-
-        self.reliability_white_line = 100
-        self.reliability_yellow_line = 100
 
     def cbGetDetectLaneParam(self, config, level):
         rospy.loginfo("[Detect Lane] Detect Lane Calibration Parameter reconfigured to")
@@ -180,6 +180,7 @@ class DetectLane():
 
         # Threshold the HSV image to get only white colors
         mask = cv2.inRange(hsv, lower_white, upper_white)
+        mask[:, :500] = 0
 
         # Bitwise-AND mask and original image
         res = cv2.bitwise_and(image, image, mask = mask)
@@ -241,7 +242,7 @@ class DetectLane():
 
         # Threshold the HSV image to get only yellow colors
         mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
-
+        mask[:, 500:] = 0
         # Bitwise-AND mask and original image
         res = cv2.bitwise_and(image, image, mask = mask)
 
