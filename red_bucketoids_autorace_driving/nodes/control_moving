@@ -178,6 +178,8 @@ class ControlMoving():
         rospy.loginfo("go_backward function is called")
         if self.is_step_start == False:
             self.lastError = 0.0
+            while self.current_pos_x == 0.0 and self.current_pos_y == 0:
+                continue
             self.start_pos_x = self.current_pos_x
             self.start_pos_y = self.current_pos_y
             self.is_step_start = True

@@ -41,18 +41,18 @@ class CoreManager:
         self.launch_detect_lane.start()
         rospy.loginfo("core_manager - Launch detect_lane node")
 
-        self.launch_control_moving = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_moving.launch"])
-        self.launch_control_moving.start()
-        rospy.loginfo("core_manager - Launch control_moving node")
-
         self.launch_control_lane = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_lane.launch"])
         self.launch_control_lane.start()
 
-        rospy.sleep(1)
-        not_move = UInt8()
-        not_move.data = 0
-        self.control_lane_is_move.publish(not_move)
-        rospy.loginfo("core_manager - Launch control_lane node")
+        # rospy.sleep(1)
+        # not_move = UInt8()
+        # not_move.data = 0
+        # self.control_lane_is_move.publish(not_move)
+        # rospy.loginfo("core_manager - Launch control_lane node")
+
+        self.launch_control_moving = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_moving.launch"])
+        self.launch_control_moving.start()
+        rospy.loginfo("core_manager - Launch control_moving node")
 
 
     def cbMissionOver(self, msg: UInt8):
@@ -126,7 +126,7 @@ class CoreManager:
         if action == self.actions.launch.value:
             self.launch_traffic_light = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/traffic_light.launch"])
             self.launch_traffic_light.start()
-        elif action == self.actions.launch.value:
+        elif action == self.actions.shutdown.value:
             self.launch_traffic_light.shutdown()
 
 
@@ -134,7 +134,7 @@ class CoreManager:
         if action == self.actions.launch.value:
             self.launch_intersection = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/intersection.launch"])
             self.launch_intersection.start()
-        elif action == self.actions.launch.value:
+        elif action == self.actions.shutdown.value:
             self.launch_intersection.shutdown()
 
 
@@ -142,7 +142,7 @@ class CoreManager:
         if action == self.actions.launch.value:
             self.launch_construction = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/construction.launch"])
             self.launch_construction.start()
-        elif action == self.actions.launch.value:
+        elif action == self.actions.shutdown.value:
             self.launch_construction.shutdown()
 
 
@@ -150,7 +150,7 @@ class CoreManager:
         if action == self.actions.launch.value:
             self.launch_parking = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/parking.launch"])
             self.launch_parking.start()
-        elif action == self.actions.launch.value:
+        elif action == self.actions.shutdown.value:
             self.launch_parking.shutdown()
 
 
@@ -158,7 +158,7 @@ class CoreManager:
         if action == self.actions.launch.value:
             self.launch_level_crossing = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/level_crossing.launch"])
             self.launch_level_crossing.start()
-        elif action == self.actions.launch.value:
+        elif action == self.actions.shutdown.value:
             self.launch_level_crossing.shutdown()
 
 
@@ -166,7 +166,7 @@ class CoreManager:
         if action == self.actions.launch.value:
             self.launch_tunnel = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_core/launch/tunnel.launch"])
             self.launch_tunnel.start()
-        elif action == self.actions.launch.value:
+        elif action == self.actions.shutdown.value:
             self.launch_tunnel.shutdown()
 
 

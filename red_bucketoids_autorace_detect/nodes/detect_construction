@@ -25,9 +25,9 @@ class DetectContruction:
         self.type_of_state = Enum('type_of_state', 'idle start stop finish')
         self.type_of_moving = Enum('type_of_moving', 'idle left right forward')
         self.steps = [
-            ("left", 80),
+            ("left", 90),
             ("forward", 0.22),
-            ("right", 100),
+            ("right", 90),
             ("forward_to_obstacle",),
             ("right", 90),
             ("forward", 0.23),
@@ -40,8 +40,8 @@ class DetectContruction:
         if self.is_find_obstacle:
             return
 
-        angle_scan = 25
-        scan_start = 0 - angle_scan
+        angle_scan = 2
+        scan_start = 0
         scan_end = 0 + angle_scan
         threshold_distance = 0.2
         is_obstacle_detected = False
@@ -73,11 +73,11 @@ class DetectContruction:
 
         if self.steps[self.num_current_step][0] == "left":
             moving_msg.moving_type = self.type_of_moving.left.value
-            moving_msg.moving_value_angular = 90
+            moving_msg.moving_value_angular = self.steps[self.num_current_step][1]
 
         elif self.steps[self.num_current_step][0] == "right":
             moving_msg.moving_type = self.type_of_moving.right.value
-            moving_msg.moving_value_angular = 90
+            moving_msg.moving_value_angular = self.steps[self.num_current_step][1]
 
         elif self.steps[self.num_current_step][0] == "forward":
             moving_msg.moving_type = self.type_of_moving.forward.value
