@@ -14,6 +14,10 @@ from cv_bridge import CvBridge, CvBridgeError
 class DetectSign():
     def __init__(self):
         self.fnPreproc()
+
+        self.detect_left_count = 0
+        self.detect_right_count = 0
+        self.choose_direction = False
         
         self.sub_image_type = "raw" # you can choose image type "compressed", "raw"
         self.pub_image_type = "compressed" # you can choose image type "compressed", "raw"
@@ -94,6 +98,9 @@ class DetectSign():
         matches_left = self.flann.knnMatch(des1,self.des_left,k=2)
         matches_right = self.flann.knnMatch(des1,self.des_right,k=2)
 
+        is_left = False
+        is_right = False
+
         image_out_num = 1
 
         good_intersection = []
@@ -127,14 +134,19 @@ class DetectSign():
             M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
             matches_left = mask.ravel().tolist()
 
-            mse = self.fnCalcMSE(src_pts, dst_pts)
-            if mse < MIN_MSE_DECISION:
-                msg_sign = UInt8()
-                msg_sign.data = self.TrafficSign.left.value
-
-                self.pub_traffic_sign.publish(msg_sign)
-                rospy.loginfo("detect left sign")
-                image_out_num = 3
+            left_mse = self.fnCalcMSE(src_pts, dst_pts)
+            if left_mse < MIN_MSE_DECISION:
+                self.detect_left_count += 1
+                if self.detect_left_count >= 4 and self.choose_direction == False:
+                    self.choose_direction = True
+                    msg_sign = UInt8()
+                    msg_sign.data = self.TrafficSign.left.value
+                    self.pub_traffic_sign.publish(msg_sign)
+                    rospy.loginfo("choose turn to left")
+                else:
+                    rospy.loginfo("detect left sign")
+                is_left = True
+                # image_out_num = 3
 
         else:
             matches_left = None
@@ -151,18 +163,35 @@ class DetectSign():
             M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
             matches_right = mask.ravel().tolist()
 
-            mse = self.fnCalcMSE(src_pts, dst_pts)
-            if mse < MIN_MSE_DECISION:
-                msg_sign = UInt8()
-                msg_sign.data = self.TrafficSign.right.value
-
-                self.pub_traffic_sign.publish(msg_sign)
-                rospy.loginfo("detect right sign")
-                image_out_num = 4
+            right_mse = self.fnCalcMSE(src_pts, dst_pts)
+            if right_mse < MIN_MSE_DECISION:
+                self.detect_right_count += 1
+                if self.detect_right_count >= 4 and self.choose_direction == False:
+                    self.choose_direction = True
+                    msg_sign = UInt8()
+                    msg_sign.data = self.TrafficSign.right.value
+                    self.pub_traffic_sign.publish(msg_sign)
+                    rospy.loginfo("choose turn to right")
+                else:
+                    rospy.loginfo("detect right sign")
+                is_right = True
+                # image_out_num = 4
 
         else:
             matches_right = None
             # rospy.loginfo("nothing detected")
+
+
+        if is_left == True and is_right == False:
+            image_out_num = 3
+        elif is_left == False and is_right == True:
+            image_out_num = 4
+        elif is_left == True and is_right == True:
+            if left_mse < right_mse:
+                image_out_num = 3
+            elif left_mse > right_mse:
+                image_out_num = 4
+
 
         if image_out_num == 1:
             if self.pub_image_type == "compressed":

@@ -48,7 +48,7 @@ class CoreManager:
         # not_move = UInt8()
         # not_move.data = 0
         # self.control_lane_is_move.publish(not_move)
-        # rospy.loginfo("core_manager - Launch control_lane node")
+        rospy.loginfo("core_manager - Launch control_lane node")
 
         self.launch_control_moving = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_moving.launch"])
         self.launch_control_moving.start()
@@ -57,6 +57,7 @@ class CoreManager:
 
     def cbMissionOver(self, msg: UInt8):
         self.fnShutdownMission()
+        rospy.sleep(0.2)
         self.fnLaunchMission()
 
 

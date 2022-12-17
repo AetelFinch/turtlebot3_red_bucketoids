@@ -3,147 +3,177 @@
 
 
 import rospy
-import os 
 from enum import Enum
 from std_msgs.msg import UInt8
 from red_bucketoids_autorace_msgs.msg import MovingParam
 
+
 class DetectIntersection():
     def __init__(self):
-   
-        # subscribes state
-        self.sub_traffic_sign = rospy.Subscriber('/detect/traffic_sign', UInt8, self.cbInvokedByTrafficSign, queue_size=1)
-        self.sub_intersection_order = rospy.Subscriber('/detect/intersection_order', UInt8, self.cbIntersectionOrder, queue_size=1)
-        self.sub_moving_completed = rospy.Subscriber('/control/moving/complete', UInt8, self.cbMovingComplete, queue_size = 1)
+        self.sub_moving_complete = rospy.Subscriber('/control/moving/complete', UInt8, self.cbMovingComplete, queue_size=1)
+        self.sub_is_intersection = rospy.Subscriber('/detect/traffic_sign', UInt8, self.cbDirection, queue_size=1)
 
-        # publisher state
+        self.sub_detect_yellow = rospy.Subscriber('/detect/yellow_line_reliability', UInt8, self.cbDetectYellow, queue_size=1)
+        self.sub_detect_white = rospy.Subscriber('/detect/white_line_reliability', UInt8, self.cbDetectWhite, queue_size=1)
+   
+        self.control_lane_is_move = rospy.Publisher('/control/lane/is_move', UInt8, queue_size=1)
+        self.pub_moving_state = rospy.Publisher('/control/moving/state', MovingParam, queue_size = 1)
         self.pub_intersection_return = rospy.Publisher('/detect/intersection_stamped', UInt8, queue_size=1)
-        self.pub_moving = rospy.Publisher('/control/moving/state', MovingParam, queue_size= 1)
-    
-        self.StepOfIntersection = Enum('StepOfIntersection', 'detect_direction exit')
-        self.TrafficSign = Enum('TrafficSign', 'intersection left right')   
 
-        self.is_moving_complete = False
-        self.is_intersection_detected = False
-        self.is_left_detected = False
-        self.is_right_detected = False
+        self.type_of_sign = Enum('type_of_sign', 'intersection left right')
+        self.type_of_state = Enum('type_of_state', 'idle start stop finish')
+        self.type_of_moving = Enum('type_of_moving', 'idle left right forward')
 
-    def cbInvokedByTrafficSign(self, traffic_sign_type_msg):    
-        if self.is_intersection_detected == True:
-            if traffic_sign_type_msg.data == self.TrafficSign.left.value:
-                self.is_left_detected = True
-                self.is_right_detected = False
+        self.is_left = False
+        self.is_right = False
 
-            elif traffic_sign_type_msg.data == self.TrafficSign.right.value:  
-                self.is_right_detected = True
-                self.is_left_detected = False
-            self.is_intersection_detected == False
+        self.start_yellow_detect = False
+        self.start_white_detect = False
 
-    def cbMovingComplete(self, data):
-        self.is_moving_complete = True
-   
-    def cbIntersectionOrder(self, order):
-        msg_pub_intersection_return = UInt8()
-     
-        if order.data == self.StepOfIntersection.detect_direction.value:
+        self.yellow_border_value = None
+        self.white_border_value = None
 
-            self.is_intersection_detected = True
-            while True:
-                if self.is_left_detected == True or self.is_right_detected == True:
-                    break
-       
-            if self.is_right_detected == True:
+        self.prev_yellow_value = 0
+        self.prev_white_value = 0
 
-                rospy.loginfo("go straight")
-                msg_moving = MovingParam()
-                msg_moving.moving_type=4
-                msg_moving.moving_value_angular=0
-                msg_moving.moving_value_linear=0.15
-                self.pub_moving.publish(msg_moving)
-                while True:
-                    if self.is_moving_complete == True:
-                        break
-                self.is_moving_complete = False
+        self.steps = [
+            ("go_while_not_choose_direction",),
+            ("left", 20),
+            ("forward", 0.15),
+            ("turn_correct", 70),
+            ("forward", 0.10),
+            ("go_while_color", 95),
+            ("forward", 0.20),
+            ("turn_correct", 80),
+            ("forward", 0.10),
+            ("exit",)
+        ]
+        self.num_current_step = 0
+        rospy.sleep(0.1)
+        self.fnRunNextStep()
 
-                rospy.sleep(1)
 
-                rospy.loginfo("go right")
-                msg_moving = MovingParam()
-                msg_moving.moving_type=3
-                msg_moving.moving_value_angular=45
-                msg_moving.moving_value_linear=0.0
-                self.pub_moving.publish(msg_moving)
-                while True:
-                    if self.is_moving_complete == True:
-                        break
-                self.is_moving_complete = False
+    def cbDetectYellow(self, msg: UInt8):
+        if self.start_yellow_detect:
+            if msg.data == self.yellow_border_value and self.prev_yellow_value > msg.data:  #Works only when yellow lane end but not begin
+                self.start_yellow_detect = False
+                rospy.loginfo("detect_intersection - End of yellow line")
 
-                rospy.sleep(1)
+                not_move = UInt8()
+                not_move.data = 0
+                self.control_lane_is_move.publish(not_move)
+                rospy.loginfo("detect_intersection - Turn Off control_lane")
+                self.prev_yellow_value = msg.data
+                self.fnRunNextStep()
+                return
+            else:
+                rospy.loginfo(f"detect_intersection - See yellow line ({msg.data})")
+        self.prev_yellow_value = msg.data
 
-                rospy.loginfo("go straight")
-                msg_moving = MovingParam()
-                msg_moving.moving_type=4
-                msg_moving.moving_value_angular=0
-                msg_moving.moving_value_linear=0.1
-                self.pub_moving.publish(msg_moving)
-                while True:
-                    if self.is_moving_complete == True:
-                        break
-                self.is_moving_complete = False
 
-                rospy.sleep(1)
-                  
-            elif self.is_left_detected == True:
+    def cbDetectWhite(self, msg: UInt8):
+        if self.start_white_detect:
+            if msg.data == self.white_border_value and self.prev_white_value > msg.data:  #Works only when white lane end but not begin
+                self.start_white_detect = False
+                rospy.loginfo("detect_intersection - End of white line")
 
-                rospy.loginfo("go straight")
-                msg_moving = MovingParam()
-                msg_moving.moving_type=4
-                msg_moving.moving_value_angular=0
-                msg_moving.moving_value_linear=0.15
-                self.pub_moving.publish(msg_moving)
-                while True:
-                    if self.is_moving_complete == True:
-                        break
-                self.is_moving_complete = False
+                not_move = UInt8()
+                not_move.data = 0
+                self.control_lane_is_move.publish(not_move)
+                rospy.loginfo("detect_intersection - Turn Off control_lane")
+                self.prev_white_value = msg.data
+                self.fnRunNextStep()
+                return
+            else:
+                rospy.loginfo(f"detect_intersection - See white line ({msg.data})")
+        self.prev_white_value = msg.data
 
-                rospy.sleep(1)
+
+    def cbDirection(self, msg: UInt8):
+        if msg.data == self.type_of_sign.intersection.value:
+            return
+        elif msg.data == self.type_of_sign.left.value:
+            self.is_left = True
             
-                rospy.loginfo("go left")
-                msg_moving = MovingParam()
-                msg_moving.moving_type=2
-                msg_moving.moving_value_angular=85
-                msg_moving.moving_value_linear=0.0
-                self.pub_moving.publish(msg_moving)
-                while True:
-                    if self.is_moving_complete == True:
-                        break
-                self.is_moving_complete = False
+        elif msg.data == self.type_of_sign.right.value:
+            self.is_right = True
 
-                rospy.sleep(1)
+        not_move = UInt8()
+        not_move.data = 0
+        self.control_lane_is_move.publish(not_move)
+        rospy.loginfo("detect_intersection - Turn Off control_lane")
 
-                rospy.loginfo("go straight")
-                msg_moving = MovingParam()
-                msg_moving.moving_type=4
-                msg_moving.moving_value_angular=0
-                msg_moving.moving_value_linear=0.2
-                self.pub_moving.publish(msg_moving)
-                while True:
-                    if self.is_moving_complete == True:
-                        break
-                self.is_moving_complete = False
+        self.fnRunNextStep()
 
-                rospy.sleep(1)
 
-            rospy.loginfo("moving finished")
-            msg_pub_intersection_return.data = self.StepOfIntersection.exit.value
-                                            
-        elif order.data == self.StepOfIntersection.exit.value:           
-            rospy.loginfo("Now finished")
-            rospy.sleep(2)
-            msg_pub_intersection_return.data = self.StepOfIntersection.exit.value
+    def cbMovingComplete(self, msg: UInt8):
+        rospy.loginfo(f"detect_contruction - Complete {self.steps[self.num_current_step - 1]} moving")
 
-        self.pub_intersection_return.publish(msg_pub_intersection_return)
-        rospy.sleep(3)
+        if msg.data == self.type_of_state.finish.value:
+            self.fnRunNextStep()
+
+
+    def fnRunNextStep(self):
+        moving_msg = MovingParam()
+
+        if self.steps[self.num_current_step][0] == "left":
+            moving_msg.moving_type = self.type_of_moving.left.value
+            moving_msg.moving_value_angular = self.steps[self.num_current_step][1]
+
+        elif self.steps[self.num_current_step][0] == "right":
+            moving_msg.moving_type = self.type_of_moving.right.value
+            moving_msg.moving_value_angular = self.steps[self.num_current_step][1]
+
+        elif self.steps[self.num_current_step][0] == "forward":
+            moving_msg.moving_type = self.type_of_moving.forward.value
+            moving_msg.moving_value_linear = self.steps[self.num_current_step][1]
+
+        elif self.steps[self.num_current_step][0] == "turn_correct":
+            if self.is_right:
+                moving_msg.moving_type = self.type_of_moving.right.value
+            elif self.is_left:
+                moving_msg.moving_type = self.type_of_moving.left.value
+            else:
+                rospy.logerr("detect_intersection - Not choose direction of rotation")
+                moving_msg.moving_type = self.type_of_moving.right.value
+            moving_msg.moving_value_angular = self.steps[self.num_current_step][1]
+
+        elif self.steps[self.num_current_step][0] == "go_while_not_choose_direction":
+            rospy.loginfo(f"detect_intersection - Start {self.steps[self.num_current_step]} moving")
+            move_msg = UInt8()
+            move_msg.data = 1
+            self.control_lane_is_move.publish(move_msg)
+            self.num_current_step += 1
+            rospy.loginfo("detect_intersection - Turn Up control_lane")
+            return
+
+        elif self.steps[self.num_current_step][0] == "go_while_color":
+            rospy.loginfo(f"detect_intersection - Start {self.steps[self.num_current_step]} moving")
+            move_msg = UInt8()
+            move_msg.data = 1
+            self.control_lane_is_move.publish(move_msg)
+            rospy.loginfo("detect_intersection - Turn Up control_lane")
+            rospy.sleep(1)
+            if self.is_right:
+                self.white_border_value = self.steps[self.num_current_step][1]
+                self.start_white_detect = True
+            elif self.is_left:
+                self.yellow_border_value = self.steps[self.num_current_step][1]
+                self.start_yellow_detect = True
+            self.num_current_step += 1
+            return
+
+        elif self.steps[self.num_current_step][0] == "exit":
+            rospy.loginfo("detect_intersection - Exit mission")
+            finish_msg = UInt8()
+            finish_msg.data = 1
+            self.pub_intersection_return.publish(finish_msg)
+            return
+  
+        rospy.loginfo(f"detect_intersection - Start {self.steps[self.num_current_step]} moving")
+        self.num_current_step += 1
+        self.pub_moving_state.publish(moving_msg)
+
 
     def main(self):
         rospy.spin()

@@ -20,8 +20,11 @@ class IntersectionManager:
         self.control_lane_is_move = rospy.Publisher('/control/lane/is_move', UInt8, queue_size=1)
         self.is_mission_over = rospy.Publisher('/mission/is_over', UInt8, queue_size=1)
 
-        self.sub_is_intersection = rospy.Subscriber('/detect/traffic_sign', UInt8, queue_size=1)
+        self.sub_is_intersection = rospy.Subscriber('/detect/traffic_sign', UInt8, self.cbIntersection, queue_size=1)
         self.sub_intersection_returns = rospy.Subscriber('/detect/intersection_stamped', UInt8, self.cbIntersectionExit, queue_size=1)  
+
+        self.type_of_sign = Enum('type_of_sign', 'intersection left right')
+        self.is_intersection_node_start = False
 
         rospy.loginfo("intersection_manager - Start Intersection Manager")
         self.initIntersection()
@@ -40,32 +43,25 @@ class IntersectionManager:
         rospy.loginfo("intersection_manager - Launch detect_intersection_sign node")
 
 
-    # def cbIntersection(self, msg: UInt8):
-    #     self.launch_intersection_sign.shutdown()
-    #     rospy.loginfo("intersection_manager - Shutdown detect_intersection_sign node")
-
-        self.launch_intersection = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_detect/launch/detect_intersection.launch"])
-        self.launch_intersection.start()
-        rospy.loginfo("intersection_manager - Launch detect_intersection node")
-        # self.launch_control_moving = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_moving.launch"])
-        # self.launch_control_moving.start()
-        # rospy.loginfo("intersection_manager - Launch control_moving node")
+    def cbIntersection(self, msg: UInt8):
+        if msg.data == self.type_of_sign.intersection.value and self.is_intersection_node_start == False:
+            self.is_intersection_node_start = True
+            self.launch_intersection = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_detect/launch/detect_intersection.launch"])
+            self.launch_intersection.start()
+            rospy.loginfo("intersection_manager - Launch detect_intersection node")
 
 
     def cbIntersectionExit(self, msg: UInt8):
         self.launch_intersection.shutdown()
-        
-        self.launch_intersection_sign.shutdown()
-        rospy.loginfo("intersection_manager - Shutdown detect_intersection_sign node")
         rospy.loginfo("intersection_manager - Shutdown detect_intersection node")
 
-        # self.launch_control_moving.shutdown()
-        # rospy.loginfo("intersection_manager - Shutdown control_moving node")
+        self.launch_intersection_sign.shutdown()
+        rospy.loginfo("intersection_manager - Shutdown detect_intersection_sign node")
 
-        # move_msg = UInt8()
-        # move_msg.data = 1
-        # self.control_lane_is_move.publish(move_msg)
-        # rospy.loginfo("intersection_manager -  Turn Up control_lane")
+        move_msg = UInt8()
+        move_msg.data = 1
+        self.control_lane_is_move.publish(move_msg)
+        rospy.loginfo("intersection_manager -  Turn Up control_lane")
 
         mission_over = UInt8()
         mission_over.data = 1
