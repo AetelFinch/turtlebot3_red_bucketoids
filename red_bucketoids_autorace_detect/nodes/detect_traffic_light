@@ -34,11 +34,11 @@ class DetectTrafficLight():
         self.config["yellow"]["lightness"]["l"] = rospy.get_param("~detect/lane/yellow/lightness_l", 231)
         self.config["yellow"]["lightness"]["h"] = rospy.get_param("~detect/lane/yellow/lightness_h", 255)
 
-        self.config["green"]["hue"]["l"] = rospy.get_param("~detect/lane/green/hue_l", 40)
-        self.config["green"]["hue"]["h"] = rospy.get_param("~detect/lane/green/hue_h", 113)
-        self.config["green"]["saturation"]["l"] = rospy.get_param("~detect/lane/green/saturation_l", 210)
+        self.config["green"]["hue"]["l"] = rospy.get_param("~detect/lane/green/hue_l", 41)
+        self.config["green"]["hue"]["h"] = rospy.get_param("~detect/lane/green/hue_h", 69)
+        self.config["green"]["saturation"]["l"] = rospy.get_param("~detect/lane/green/saturation_l", 82)
         self.config["green"]["saturation"]["h"] = rospy.get_param("~detect/lane/green/saturation_h", 255)
-        self.config["green"]["lightness"]["l"] = rospy.get_param("~detect/lane/green/lightness_l", 131)
+        self.config["green"]["lightness"]["l"] = rospy.get_param("~detect/lane/green/lightness_l", 76)
         self.config["green"]["lightness"]["h"] = rospy.get_param("~detect/lane/green/lightness_h", 255)
 
         self.is_calibration_mode = rospy.get_param("~is_detection_calibration_mode", False)
