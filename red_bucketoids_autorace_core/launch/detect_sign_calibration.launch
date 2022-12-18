@@ -1,0 +1,9 @@
+<launch>
+  <arg name="mode" default="calibration"/>
+  <arg name="mission" default="intersection" doc="mission type [intersection, construction, parking, level_crossing, tunnel]"/>
+
+  <include file="$(find red_bucketoids_autorace_camera)/launch/intrinsic_camera_calibration.launch"/>
+  <include file="$(find red_bucketoids_autorace_camera)/launch/extrinsic_camera_calibration.launch"/>
+  <include file="$(find red_bucketoids_autorace_detect)/launch/detect_sign.launch" pass_all_args="true"/>
+
+</launch>
