@@ -117,6 +117,7 @@ class DetectParking:
             moving_msg.moving_value_linear = self.steps[self.num_current_step][1]
 
         elif self.steps[self.num_current_step][0] == "backward":
+            rospy.sleep(1)
             moving_msg.moving_type = self.type_of_moving.backward.value
             moving_msg.moving_value_linear = self.steps[self.num_current_step][1]
 
