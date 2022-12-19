@@ -30,21 +30,21 @@ class DetectParking:
         self.type_of_state = Enum('type_of_state', 'idle start stop finish')
         self.type_of_moving = Enum('type_of_moving', 'idle left right forward backward')
         self.steps = [
-            ("forward_while_yellow", 0),
-            ("forward", 0.1),
+            ("forward_while_yellow", 80),
+            ("forward", 0.20),
             ("left", 88),
             ("forward", 0.2),
-            ("scan_obstacle_and_forward_while_yellow", 0),
+            ("scan_obstacle_and_forward_while_yellow", 80),
             ("forward", 0.3),
             ("turn_correct", 90),
             ("forward", 0.2),
             ("backward", 0.2),
             ("turn_correct", 90),
             ("forward", 0.3),
-            ("forward_while_yellow", 95),
-            ("forward", 0.2),
-            ("left", 70),
-            ("forward", 0.1),
+            # ("forward_while_yellow", 95),
+            # ("forward", 0.2),
+            # ("left", 70),
+            # ("forward", 0.1),
             ("exit",)
         ]
         self.num_current_step = 0
