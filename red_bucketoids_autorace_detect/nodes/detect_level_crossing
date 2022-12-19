@@ -70,11 +70,11 @@ def fnCheckDistanceIsEqual(point1, point2, point3):
 class DetectLevel():
     def __init__(self):
         self.hue_red_l = rospy.get_param("~detect/level/red/hue_l", 0)
-        self.hue_red_h = rospy.get_param("~detect/level/red/hue_h", 179)
-        self.saturation_red_l = rospy.get_param("~detect/level/red/saturation_l", 24)
+        self.hue_red_h = rospy.get_param("~detect/level/red/hue_h", 12)
+        self.saturation_red_l = rospy.get_param("~detect/level/red/saturation_l", 29)
         self.saturation_red_h = rospy.get_param("~detect/level/red/saturation_h", 255)
-        self.lightness_red_l = rospy.get_param("~detect/level/red/lightness_l", 207)
-        self.lightness_red_h = rospy.get_param("~detect/level/red/lightness_h", 162)
+        self.lightness_red_l = rospy.get_param("~detect/level/red/lightness_l", 79)
+        self.lightness_red_h = rospy.get_param("~detect/level/red/lightness_h", 255)
 
         self.is_calibration_mode = rospy.get_param("~is_detection_calibration_mode", False)
         if self.is_calibration_mode == True:
