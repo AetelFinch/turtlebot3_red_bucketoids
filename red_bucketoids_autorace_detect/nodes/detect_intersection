@@ -173,7 +173,7 @@ class DetectIntersection():
                 moving_msg.moving_type = self.type_of_moving.left.value
             else:
                 rospy.logerr("detect_intersection - Not choose direction of rotation")
-                moving_msg.moving_type = self.type_of_moving.right.value
+                moving_msg.moving_type = self.type_of_moving.left.value
             moving_msg.moving_value_angular = self.steps[self.num_current_step][1]
 
         # elif self.steps[self.num_current_step][0] == "go_while_not_choose_direction":

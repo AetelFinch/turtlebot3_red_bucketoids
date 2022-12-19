@@ -10,17 +10,16 @@ from geometry_msgs.msg import Twist
 class ControlLane():
     def __init__(self):
         rospy.loginfo("Start control lane node")
-        
         self.sub_is_move = rospy.Subscriber('/control/lane/is_move', UInt8, self.cbIsMove, queue_size=2)
         self.sub_lane = rospy.Subscriber('/control/lane', Float64, self.cbFollowLane, queue_size = 1)
         self.sub_max_vel = rospy.Subscriber('/control/max_vel', Float64, self.cbGetMaxVel, queue_size = 1)
         self.pub_cmd_vel = rospy.Publisher('/control/cmd_vel', Twist, queue_size = 1)
 
         self.lastError = 0
-        self.MAX_VEL = 0.1
-
+        self.MAX_VEL = 0.4
+        self._last_time = rospy.get_time()
         self.is_move = 0
-
+        self.prev_vel_x = 0.05
         rospy.on_shutdown(self.fnShutDown)
 
     def cbGetMaxVel(self, max_vel_msg):
@@ -36,20 +35,26 @@ class ControlLane():
             twist = Twist()
             self.pub_cmd_vel.publish(twist)
             return
-
+        now = rospy.get_time()
+        dt = now - self._last_time if now - self._last_time else 1e-16
         center = desired_center.data
 
         error = center - 500
 
-        Kp = 0.0025
-        Kd = 0.007
+        Kp = 0.005
+        Ki = 0.0000025
+        Kd = 0.0007
+        P = Kp * error
+        I = Ki * error * dt
+        D = Kd * (error - self.lastError)
+        angular_z = P + I + D
 
-        angular_z = Kp * error + Kd * (error - self.lastError)
         self.lastError = error
-        
         twist = Twist()
-        # twist.linear.x = 0.05        
-        twist.linear.x = min(self.MAX_VEL * ((1 - abs(error) / 500) ** 2.2), 0.05)
+        # twist.linear.x = 0.05
+        twist.linear.x = min(max(self.MAX_VEL * (1 - self.prev_vel_x / self.MAX_VEL) * ((1 - (abs(error) / 500)) ** 4), 0.05),self.MAX_VEL)
+        self.prev_vel_x = twist.linear.x
+
         twist.linear.y = 0
         twist.linear.z = 0
         twist.angular.x = 0
