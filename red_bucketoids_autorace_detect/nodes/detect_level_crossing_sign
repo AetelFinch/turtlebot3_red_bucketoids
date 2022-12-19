@@ -88,13 +88,14 @@ class DetectSign():
         matches_stop = self.flann.knnMatch(des1,self.des_stop,k=2)
 
         image_out_num = 1
-
         good_stop = []
         for m,n in matches_stop:
             if m.distance < 0.7*n.distance:
                 good_stop.append(m)
+        rospy.loginfo("good_stop len is: ")
+        rospy.loginfo(str(len(good_stop)))
 
-        if len(good_stop)>MIN_MATCH_COUNT:
+        if len(good_stop)>=MIN_MATCH_COUNT:
             src_pts = np.float32([ kp1[m.queryIdx].pt for m in good_stop ]).reshape(-1,1,2)
             dst_pts = np.float32([ self.kp_stop[m.trainIdx].pt for m in good_stop ]).reshape(-1,1,2)
 
@@ -104,8 +105,8 @@ class DetectSign():
             mse = self.fnCalcMSE(src_pts, dst_pts)
             if mse < MIN_MSE_DECISION:
                 msg_sign = UInt8()
-                msg_sign.data = self.TrafficSign.stop.value
-
+                #msg_sign.data = self.TrafficSign.stop.value
+                msg_sign.data = 1
                 self.pub_traffic_sign.publish(msg_sign)
 
                 rospy.loginfo("stop")
