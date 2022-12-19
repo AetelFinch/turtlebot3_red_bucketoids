@@ -14,10 +14,12 @@ class DetectIntersection():
         self.is_right = False
 
         self.start_yellow_detect_for_start = False
+        self.start_white_detect_for_start = False
         self.start_yellow_detect = False
         self.start_white_detect = False
 
         self.yellow_border_value_for_start = None
+        self.white_border_value_for_start = None
         self.yellow_border_value = None
         self.white_border_value = None
 
@@ -27,7 +29,8 @@ class DetectIntersection():
         self.sub_moving_complete = rospy.Subscriber('/control/moving/complete', UInt8, self.cbMovingComplete, queue_size=1)
         self.sub_is_intersection = rospy.Subscriber('/detect/traffic_sign', UInt8, self.cbDirection, queue_size=1)
 
-        self.sub_detect_yellow_start = rospy.Subscriber('/detect/yellow_line_reliability', UInt8, self.cbDetectYellowForStart, queue_size=1)
+        # self.sub_detect_yellow_start = rospy.Subscriber('/detect/yellow_line_reliability', UInt8, self.cbDetectYellowForStart, queue_size=1)
+        self.sub_detect_white_start = rospy.Subscriber('/detect/white_line_reliability', UInt8, self.cbDetectWhiteForStart, queue_size=1)
         self.sub_detect_yellow = rospy.Subscriber('/detect/yellow_line_reliability', UInt8, self.cbDetectYellow, queue_size=1)
         self.sub_detect_white = rospy.Subscriber('/detect/white_line_reliability', UInt8, self.cbDetectWhite, queue_size=1)
    
@@ -40,13 +43,11 @@ class DetectIntersection():
         self.type_of_moving = Enum('type_of_moving', 'idle left right forward')
 
         self.steps = [
-            ("go_while_yellow", 0),
-            ("left", 10),
-            ("forward", 0.10),
-            ("left", 55),
-            ("forward", 0.27),
-            ("turn_correct", 63),
-            ("forward", 0.13),
+            ("go_while_white", 95),
+            ("left", 20),
+            ("forward", 0.15),
+            ("turn_correct", 90),
+            ("forward", 0.2),
             ("go_while_color", 95),
             ("forward", 0.20),
             ("turn_correct", 70),
@@ -76,11 +77,27 @@ class DetectIntersection():
         self.prev_yellow_value = msg.data
 
 
-    def cbDetectYellowForStart(self, msg: UInt8):
-        if self.start_yellow_detect_for_start:
-            if msg.data == self.yellow_border_value_for_start and self.prev_yellow_value > msg.data:  #Works only when yellow lane end but not begin
-                self.start_yellow_detect_for_start = False
-                rospy.loginfo("detect_intersection - End of yellow line")
+    # def cbDetectYellowForStart(self, msg: UInt8):
+    #     if self.start_yellow_detect_for_start:
+    #         if msg.data == self.yellow_border_value_for_start and self.prev_yellow_value > msg.data:  #Works only when yellow lane end but not begin
+    #             self.start_yellow_detect_for_start = False
+    #             rospy.loginfo("detect_intersection - End of yellow line")
+
+    #             not_move = UInt8()
+    #             not_move.data = 0
+    #             self.control_lane_is_move.publish(not_move)
+    #             rospy.loginfo("detect_intersection - Turn Off control_lane")
+    #             self.fnRunNextStep()
+    #             return
+    #         else:
+    #             rospy.loginfo(f"detect_intersection - See yellow line ({msg.data})")
+
+
+    def cbDetectWhiteForStart(self, msg: UInt8):
+        if self.start_white_detect_for_start:
+            if msg.data == self.white_border_value_for_start and self.prev_white_value > msg.data:  #Works only when white lane end but not begin
+                self.start_white_detect_for_start = False
+                rospy.loginfo("detect_intersection - End of white line")
 
                 not_move = UInt8()
                 not_move.data = 0
@@ -89,7 +106,7 @@ class DetectIntersection():
                 self.fnRunNextStep()
                 return
             else:
-                rospy.loginfo(f"detect_intersection - See yellow line ({msg.data})")
+                rospy.loginfo(f"detect_intersection - See white line ({msg.data})")
 
 
     def cbDetectWhite(self, msg: UInt8):
@@ -168,10 +185,21 @@ class DetectIntersection():
         #     rospy.loginfo("detect_intersection - Turn Up control_lane")
         #     return
 
-        elif self.steps[self.num_current_step][0] == "go_while_yellow":
+        # elif self.steps[self.num_current_step][0] == "go_while_yellow":
+        #     rospy.loginfo(f"detect_parking - Start {self.steps[self.num_current_step]} moving")
+        #     self.yellow_border_value_for_start = self.steps[self.num_current_step][1]
+        #     self.start_yellow_detect_for_start = True
+        #     move_msg = UInt8()
+        #     move_msg.data = 1
+        #     self.control_lane_is_move.publish(move_msg)
+        #     self.num_current_step += 1
+        #     rospy.loginfo("detect_parking - Turn Up control_lane")
+        #     return
+
+        elif self.steps[self.num_current_step][0] == "go_while_white":
             rospy.loginfo(f"detect_parking - Start {self.steps[self.num_current_step]} moving")
-            self.yellow_border_value_for_start = self.steps[self.num_current_step][1]
-            self.start_yellow_detect_for_start = True
+            self.white_border_value_for_start = self.steps[self.num_current_step][1]
+            self.start_white_detect_for_start = True
             move_msg = UInt8()
             move_msg.data = 1
             self.control_lane_is_move.publish(move_msg)

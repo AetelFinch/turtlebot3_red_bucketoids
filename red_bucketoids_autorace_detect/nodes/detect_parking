@@ -44,6 +44,7 @@ class DetectParking:
             ("forward_while_yellow", 95),
             ("forward", 0.2),
             ("left", 70),
+            ("forward", 0.1),
             ("exit",)
         ]
         self.num_current_step = 0
