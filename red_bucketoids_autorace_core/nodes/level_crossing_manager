@@ -19,6 +19,7 @@ class LevelCrossingManager:
 
         self.control_lane_is_move = rospy.Publisher('/control/lane/is_move', UInt8, queue_size=1)
         self.is_mission_over = rospy.Publisher('/mission/is_over', UInt8, queue_size=1)
+        self.pub_max_veloc = rospy.Publisher('/control/max_vel', Float64, queue_size = 1)
 
         self.is_stop_sign = rospy.Subscriber('/detect/traffic_sign', UInt8, self.cbTrafficSign, queue_size=1)
         self.detect_level_crossing_order = rospy.Publisher('/detect/level_crossing_order', UInt8, queue_size=1)
@@ -34,33 +35,28 @@ class LevelCrossingManager:
         self.launch_detect_level_crossing_sign.start()
 
         rospy.loginfo("level_crossing_manager - Launch detect_level_crossing_sign node")
-
-
-    def cbTrafficSign(self, msg: UInt8):
         one = UInt8()
         one.data = 1
-
-        self.launch_detect_level_crossing_sign.shutdown()
-        rospy.loginfo("level_crossing_manager - Shutdown detect_level_crossing_sign node")
-    
-        self.detect_level_crossing_order.publish(one)
 
         self.detect_level_crossing = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_detect/launch/detect_level_crossing.launch"])
         self.detect_level_crossing.start()
         rospy.loginfo("detect level crossing started")
         rospy.sleep(3)
         self.detect_level_crossing_order.publish(one)
-        self.detect_level_crossing_order.publish(one)
-        self.detect_level_crossing_order.publish(one)
-        self.detect_level_crossing_order.publish(one)
-        self.detect_level_crossing_order.publish(one)
 
-        rospy.loginfo("Bar detection started")
+
+    def cbTrafficSign(self, msg: UInt8):
+        self.launch_detect_level_crossing_sign.shutdown()
+        rospy.loginfo("level_crossing_manager - Shutdown detect_level_crossing_sign node")
+        msg_pub_max_vel = Float64()
+        msg_pub_max_vel.data = 0.1
+        self.pub_max_veloc.publish(msg_pub_max_vel)
+
+        rospy.loginfo("Slow speed near level sign")
         #mission_over = UInt8()
         #mission_over.data = 1
         #self.is_mission_over.publish(mission_over)
         #rospy.loginfo("traffic_light_manager - Send mission over message")
-        self.detect_level_crossing_order.publish(one)
 
 
     def main(self):

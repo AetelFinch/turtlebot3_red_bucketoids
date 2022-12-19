@@ -107,10 +107,10 @@ class DetectLevel():
 
         self.sub_level_crossing_order = rospy.Subscriber('/detect/level_crossing_order', UInt8, self.cbLevelCrossingOrder, queue_size=1)
         self.sub_level_crossing_finished = rospy.Subscriber('/control/level_crossing_finished', UInt8, self.cbLevelCrossingFinished, queue_size = 1)
-
+        self.is_mission_over = rospy.Publisher('/mission/is_over', UInt8, queue_size=1)
         self.pub_level_crossing_return = rospy.Publisher('/detect/level_crossing_stamped', UInt8, queue_size=1)
         self.pub_max_vel = rospy.Publisher('/control/lane/is_move', UInt8, queue_size = 1)
-
+        self.pub_max_veloc = rospy.Publisher('/control/max_vel', Float64, queue_size = 1)
         self.StepOfLevelCrossing = Enum('StepOfLevelCrossing', 'pass_level exit')
         self.is_level_crossing_finished = False
         self.stop_bar_count = 0
@@ -164,17 +164,6 @@ class DetectLevel():
     def cbLevelCrossingOrder(self, order):
         pub_level_crossing_return = UInt8()
         rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
-        rospy.loginfo("ORDER")
 
         if order.data == self.StepOfLevelCrossing.pass_level.value:
 
@@ -183,9 +172,9 @@ class DetectLevel():
                 is_level_detected, _, _ = self.fnFindLevel()
                 if is_level_detected == True:
                     rospy.loginfo("Level Detect")
-                    #msg_pub_max_vel = Float64()
-                    #msg_pub_max_vel.data = 0.03
-                    #self.pub_max_vel.publish(msg_pub_max_vel)
+                   # msg_pub_max_vel = Float64()
+                   # msg_pub_max_vel.data = 0.05
+                   # self.pub_max_veloc.publish(msg_pub_max_vel)
                     msg = UInt8()
                     msg.data = 1
                     self.pub_max_vel.publish(msg)
@@ -216,9 +205,18 @@ class DetectLevel():
                     #msg_pub_max_vel = Float64()
                     #msg_pub_max_vel.data = 0.5
                     #self.pub_max_vel.publish(msg_pub_max_vel)
+                    msg_pub_max_vel = Float64()
+                    msg_pub_max_vel.data = 0.4
+                    self.pub_max_veloc.publish(msg_pub_max_vel)
+
                     msg = UInt8()
                     msg.data = 1
                     self.pub_max_vel.publish(msg)
+                    mission_over = UInt8()
+                    mission_over.data = 1
+                    self.is_mission_over.publish(mission_over)
+                    rospy.loginfo("level_crossing_manager - Send mission over message")
+
                     break
                 else:
                     pass
