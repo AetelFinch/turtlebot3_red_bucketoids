@@ -48,10 +48,10 @@ class DetectIntersection():
             ("forward", 0.15),
             ("turn_correct", 90),
             ("forward", 0.2),
-            ("go_while_color", 95),
-            ("forward", 0.20),
-            ("turn_correct", 70),
-            ("forward", 0.10),
+            # ("go_while_color", 95),
+            # ("forward", 0.20),
+            # ("turn_correct", 70),
+            # ("forward", 0.10),
             ("exit",)
         ]
         self.num_current_step = 0

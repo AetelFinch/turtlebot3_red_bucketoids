@@ -71,6 +71,7 @@ class CoreManager:
             self.fnIntersection(self.actions.launch.value)
 
         elif self.current_mission == self.missions.construction.value:
+            rospy.sleep(5)
             rospy.loginfo("core_manager - Start Construction Mission")
             self.fnConstruction(self.actions.launch.value)
 

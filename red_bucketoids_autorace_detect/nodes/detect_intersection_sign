@@ -18,9 +18,9 @@ class DetectSign():
         self.choose_direction = False
 
         self.MIN_MATCH_COUNT_INTERSECTION = 9 #9
-        self.MIN_MATCH_COUNT_LEFT = 19 #9
-        self.MIN_MATCH_COUNT_RIGHT = 19 #9
-        self.MIN_MSE_DECISION = 35000
+        self.MIN_MATCH_COUNT_LEFT = 15 #9
+        self.MIN_MATCH_COUNT_RIGHT = 15 #9
+        self.MIN_MSE_DECISION = 40000
 
         self.matchers = Enum("matchers", "brute_force flann")
         self.matcher_value = self.matchers.brute_force.value
