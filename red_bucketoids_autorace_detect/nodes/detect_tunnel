@@ -52,7 +52,7 @@ class DetectTunnel():
 
     def cbDetectYellow(self, msg):
         if self.start_yellow_detect:
-            if msg.data == self.yellow_border_value and self.prev_yellow_value > msg.data:  #Works only when yellow lane end but not begin
+            if msg.data <= self.yellow_border_value and self.prev_yellow_value > msg.data:  #Works only when yellow lane end but not begin
                 self.start_yellow_detect = False
                 rospy.loginfo("detect tunnel - End of yellow line")
 
