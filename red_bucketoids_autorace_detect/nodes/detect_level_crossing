@@ -75,7 +75,7 @@ class DetectLevel():
         self.saturation_red_h = rospy.get_param("~detect/level/red/saturation_h", 255)
         self.lightness_red_l = rospy.get_param("~detect/level/red/lightness_l", 79)
         self.lightness_red_h = rospy.get_param("~detect/level/red/lightness_h", 255)
-
+        self.counter = 1
         self.is_calibration_mode = rospy.get_param("~is_detection_calibration_mode", False)
         if self.is_calibration_mode == True:
             srv_detect_lane = Server(DetectLevelParamsConfig, self.cbGetDetectLevelParam)
@@ -107,10 +107,10 @@ class DetectLevel():
 
         self.sub_level_crossing_order = rospy.Subscriber('/detect/level_crossing_order', UInt8, self.cbLevelCrossingOrder, queue_size=1)
         self.sub_level_crossing_finished = rospy.Subscriber('/control/level_crossing_finished', UInt8, self.cbLevelCrossingFinished, queue_size = 1)
-
+        self.is_mission_over = rospy.Publisher('/mission/is_over', UInt8, queue_size=1)
         self.pub_level_crossing_return = rospy.Publisher('/detect/level_crossing_stamped', UInt8, queue_size=1)
-        self.pub_max_vel = rospy.Publisher('/control/max_vel', Float64, queue_size = 1)
-
+        self.pub_max_vel = rospy.Publisher('/control/lane/is_move', UInt8, queue_size = 1)
+        self.pub_max_veloc = rospy.Publisher('/control/max_vel', Float64, queue_size = 1)
         self.StepOfLevelCrossing = Enum('StepOfLevelCrossing', 'pass_level exit')
         self.is_level_crossing_finished = False
         self.stop_bar_count = 0
@@ -122,10 +122,10 @@ class DetectLevel():
         rospy.sleep(1)
 
         loop_rate = rospy.Rate(15)
-        while not rospy.is_shutdown():
-            self.fnFindLevel()
+#        while not rospy.is_shutdown():
+#            self.fnFindLevel()
 
-            loop_rate.sleep()
+#            loop_rate.sleep()
 
     def cbGetDetectLevelParam(self, config, level):
         rospy.loginfo("[Detect Level] Detect Level Calibration Parameter reconfigured to")
@@ -163,38 +163,60 @@ class DetectLevel():
 
     def cbLevelCrossingOrder(self, order):
         pub_level_crossing_return = UInt8()
+        rospy.loginfo("ORDER")
 
         if order.data == self.StepOfLevelCrossing.pass_level.value:
 
             while True:
+                rospy.loginfo("stage 1")
                 is_level_detected, _, _ = self.fnFindLevel()
                 if is_level_detected == True:
                     rospy.loginfo("Level Detect")
-                    msg_pub_max_vel = Float64()
-                    msg_pub_max_vel.data = 0.03
-                    self.pub_max_vel.publish(msg_pub_max_vel)
+                   # msg_pub_max_vel = Float64()
+                   # msg_pub_max_vel.data = 0.05
+                   # self.pub_max_veloc.publish(msg_pub_max_vel)
+                    msg = UInt8()
+                    msg.data = 1
+                    self.pub_max_vel.publish(msg)
                     break
                 else:
                     pass 
 
             while True:
+                rospy.loginfo("stage 2")
                 _, is_level_close, _ = self.fnFindLevel()
                 if is_level_close == True:
                     rospy.loginfo("STOP")
-                    msg_pub_max_vel = Float64()
-                    msg_pub_max_vel.data = 0.0
-                    self.pub_max_vel.publish(msg_pub_max_vel)
+                    #msg_pub_max_vel = Float64()
+                    #msg_pub_max_vel.data = 0.000001
+                    #self.pub_max_vel.publish(msg_pub_max_vel)
+                    msg = UInt8()
+                    msg.data = 0
+                    self.pub_max_vel.publish(msg)
                     break
                 else:
                     pass
 
             while True:
+                rospy.loginfo("stage 3")
                 _, _, is_level_opened = self.fnFindLevel()
                 if is_level_opened == True:
                     rospy.loginfo("GO")
+                    #msg_pub_max_vel = Float64()
+                    #msg_pub_max_vel.data = 0.5
+                    #self.pub_max_vel.publish(msg_pub_max_vel)
                     msg_pub_max_vel = Float64()
-                    msg_pub_max_vel.data = 0.05
-                    self.pub_max_vel.publish(msg_pub_max_vel)
+                    msg_pub_max_vel.data = 0.4
+                    self.pub_max_veloc.publish(msg_pub_max_vel)
+
+                    msg = UInt8()
+                    msg.data = 1
+                    self.pub_max_vel.publish(msg)
+                    mission_over = UInt8()
+                    mission_over.data = 1
+                    self.is_mission_over.publish(mission_over)
+                    rospy.loginfo("level_crossing_manager - Send mission over message")
+
                     break
                 else:
                     pass
@@ -278,6 +300,8 @@ class DetectLevel():
         mean_y = 0.0
 
         # if detected 3 red rectangular
+        rospy.loginfo("keypts len:")
+        rospy.loginfo(str(len(keypts)))
         if len(keypts) == 3:
             for i in range(3):
                 mean_x = mean_x + keypts[i].pt[0]/3

@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+import os
+
+import numpy as np
+import rospy, roslaunch
+
+from enum import Enum
+from std_msgs.msg import UInt8, Float64
+
+
+class LevelCrossingManager:
+    def __init__(self):
+        self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+        self.ros_package_path = os.path.dirname(os.path.realpath(__file__))
+        self.ros_package_path = self.ros_package_path.replace('red_bucketoids_autorace_core/nodes', '')
+
+        self.control_lane_is_move = rospy.Publisher('/control/lane/is_move', UInt8, queue_size=1)
+        self.is_mission_over = rospy.Publisher('/mission/is_over', UInt8, queue_size=1)
+        self.pub_max_veloc = rospy.Publisher('/control/max_vel', Float64, queue_size = 1)
+
+        self.is_stop_sign = rospy.Subscriber('/detect/traffic_sign', UInt8, self.cbTrafficSign, queue_size=1)
+        self.detect_level_crossing_order = rospy.Publisher('/detect/level_crossing_order', UInt8, queue_size=1)
+
+        rospy.loginfo("level_crossing_manager - Start Level Crossing Manager")
+        self.initLevelCrossing()
+
+
+    def initLevelCrossing(self):
+        roslaunch_file = self.ros_package_path + "red_bucketoids_autorace_detect/launch/detect_sign.launch"
+        roslaunch_args = ["mission:=level_crossing"]
+        self.launch_detect_level_crossing_sign = roslaunch.parent.ROSLaunchParent(self.uuid, [(roslaunch_file, roslaunch_args)])
+        self.launch_detect_level_crossing_sign.start()
+
+        rospy.loginfo("level_crossing_manager - Launch detect_level_crossing_sign node")
+        one = UInt8()
+        one.data = 1
+
+        self.detect_level_crossing = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_detect/launch/detect_level_crossing.launch"])
+        self.detect_level_crossing.start()
+        rospy.loginfo("detect level crossing started")
+        rospy.sleep(3)
+        self.detect_level_crossing_order.publish(one)
+
+
+    def cbTrafficSign(self, msg: UInt8):
+        self.launch_detect_level_crossing_sign.shutdown()
+        rospy.loginfo("level_crossing_manager - Shutdown detect_level_crossing_sign node")
+        msg_pub_max_vel = Float64()
+        msg_pub_max_vel.data = 0.1
+        self.pub_max_veloc.publish(msg_pub_max_vel)
+
+        rospy.loginfo("Slow speed near level sign")
+        #mission_over = UInt8()
+        #mission_over.data = 1
+        #self.is_mission_over.publish(mission_over)
+        #rospy.loginfo("traffic_light_manager - Send mission over message")
+
+
+    def main(self):
+        rospy.spin()
+
+
+if __name__ == '__main__':
+    rospy.init_node('level_crossing_manager')
+    node = LevelCrossingManager()
+    node.main()
