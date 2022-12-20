@@ -79,9 +79,9 @@ class CoreManager:
             rospy.loginfo("core_manager - Start Level Crossing Mission")
             self.fnLevelCrossing(self.actions.launch.value)
 
-        elif self.current_mission == self.missions.tunnel.value:
-            rospy.loginfo("core_manager - Start Tunnel Mission")
-            self.fnTunnel(self.actions.launch.value)
+        # elif self.current_mission == self.missions.tunnel.value:
+        #     rospy.loginfo("core_manager - Start Tunnel Mission")
+        #     self.fnTunnel(self.actions.launch.value)
 
         elif self.current_mission == self.missions.finish.value:
             rospy.loginfo("core_manager - Finish Autorace")
@@ -114,10 +114,10 @@ class CoreManager:
             self.fnLevelCrossing(self.actions.shutdown.value)
             self.current_mission = self.missions.finish.value
 
-        elif self.current_mission == self.missions.tunnel.value:
-            rospy.loginfo("core_manager - Shutdown Tunnel Mission")
-            self.fnTunnel(self.actions.shutdown.value)
-            self.current_mission = self.missions.finish.value
+        # elif self.current_mission == self.missions.tunnel.value:
+        #     rospy.loginfo("core_manager - Shutdown Tunnel Mission")
+        #     self.fnTunnel(self.actions.shutdown.value)
+        #     self.current_mission = self.missions.finish.value
 
 
     def fnTrafficLight(self, action):
