@@ -8,7 +8,7 @@ import numpy as np
 import rospy, roslaunch
 
 from enum import Enum
-from std_msgs.msg import UInt8, Float64
+from std_msgs.msg import UInt8, Float64, String
 
 
 class CoreManager:
@@ -18,11 +18,12 @@ class CoreManager:
         self.ros_package_path = self.ros_package_path.replace('red_bucketoids_autorace_core/nodes', '')
 
         self.control_lane_is_move = rospy.Publisher('/control/lane/is_move', UInt8, queue_size=1)
+        self.robot_finish = rospy.Publisher('/robot_finish', String, queue_size=1)
 
         self.is_mission_over = rospy.Subscriber('/mission/is_over', UInt8, self.cbMissionOver, queue_size=1)
 
         self.missions = Enum("missions", "traffic_light intersection construction parking level_crossing tunnel finish")
-        self.current_mission = self.missions.traffic_light.value
+        self.current_mission = self.missions.tunnel.value
         self.current_mission_launch = None
 
         self.actions = Enum("actions", "shutdown launch")
@@ -43,11 +44,6 @@ class CoreManager:
 
         self.launch_control_lane = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_lane.launch"])
         self.launch_control_lane.start()
-
-        # rospy.sleep(1)
-        # not_move = UInt8()
-        # not_move.data = 0
-        # self.control_lane_is_move.publish(not_move)
         rospy.loginfo("core_manager - Launch control_lane node")
 
         self.launch_control_moving = roslaunch.parent.ROSLaunchParent(self.uuid, [self.ros_package_path + "red_bucketoids_autorace_driving/launch/turtlebot3_autorace_control_moving.launch"])
@@ -176,6 +172,10 @@ class CoreManager:
         not_move = UInt8()
         not_move.data = 0
         self.control_lane_is_move.publish(not_move)
+
+        name = String()
+        name.data = "Red Bucketoids"
+        self.robot_finish.publish(name)
 
 
     def main(self):
