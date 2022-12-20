@@ -1,7 +1,7 @@
 ## Как запустить трассу с нуля:
 - roslaunch turtlebot3_gazebo turtlebot3_autorace_2020.launch
 - roslaunch red_bucketoids_autorace_core red_bucketoids_autorace_core.launch
-- roslaunch red_bucketoids_autorace_core turtlebot3_autorace_mission.launch
+- roslaunch red_bucketoids_autorace_core turtlebot3_autorace_mission.launch (или referee console)
 
 ## Как запустить трассу, начиная с произвольной трассы:
 1) Поставить робота на нужную позицию на трассе
