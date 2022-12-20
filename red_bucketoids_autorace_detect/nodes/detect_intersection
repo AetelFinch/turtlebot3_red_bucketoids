@@ -45,7 +45,7 @@ class DetectIntersection():
         self.steps = [
             ("go_while_white", 95),
             ("left", 20),
-            ("forward", 0.15),
+            ("forward", 0.12),
             ("turn_correct", 90),
             ("forward", 0.1),
             # ("go_while_color", 95),
