@@ -18,6 +18,7 @@ class DetectTunnel():
     def __init__(self):
         self.yellow_border_value = 0
         self.start_yellow_detect = False
+        self.prev_yellow_value = 100
         # subscribes state 
         self.sub_moving_complete = rospy.Subscriber('/control/moving/complete', UInt8, self.cbMovingComplete, queue_size = 1)
         self.sub_arrival_status = rospy.Subscriber("/move_base/result", MoveBaseActionResult, self.cbGetNavigationResult, queue_size=1)

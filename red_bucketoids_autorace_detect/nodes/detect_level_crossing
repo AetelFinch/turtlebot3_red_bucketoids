@@ -336,7 +336,7 @@ class DetectLevel():
                     is_level_close = True
                     self.stop_bar_state = 'stop'
 
-        elif len(keypts) <= 2:
+        elif len(keypts) < 2:
             self.cnt += 1
             if self.cnt > 2:
                 is_level_opened = True

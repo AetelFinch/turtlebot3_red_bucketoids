@@ -22,7 +22,7 @@ class CoreManager:
 
         self.is_mission_over = rospy.Subscriber('/mission/is_over', UInt8, self.cbMissionOver, queue_size=1)
 
-        self.missions = Enum("missions", "traffic_light intersection construction parking level_crossing tunnel finish")
+        self.missions = Enum("missions", "traffic_light intersection construction parking level_crossing finish")
         self.current_mission = self.missions.traffic_light.value
         self.current_mission_launch = None
 
@@ -112,7 +112,7 @@ class CoreManager:
         elif self.current_mission == self.missions.level_crossing.value:
             rospy.loginfo("core_manager - Shutdown Level Crossing Mission")
             self.fnLevelCrossing(self.actions.shutdown.value)
-            self.current_mission = self.missions.tunnel.value
+            self.current_mission = self.missions.finish.value
 
         elif self.current_mission == self.missions.tunnel.value:
             rospy.loginfo("core_manager - Shutdown Tunnel Mission")
@@ -169,6 +169,7 @@ class CoreManager:
 
 
     def fnFinish(self):
+        rospy.sleep(4)
         not_move = UInt8()
         not_move.data = 0
         self.control_lane_is_move.publish(not_move)
