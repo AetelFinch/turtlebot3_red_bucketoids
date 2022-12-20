@@ -77,9 +77,9 @@ class ImageCompensation():
 
             accumulator = np.cumsum(hist)
 
-            max = accumulator[hist_size - 1]
+            max_ = accumulator[hist_size - 1]
 
-            clip_hist_percent *= (max / 100.)
+            clip_hist_percent *= (max_ / 100.)
             clip_hist_percent /= 2.
 
             min_gray = 0
@@ -87,8 +87,13 @@ class ImageCompensation():
                 min_gray += 1
             
             max_gray = hist_size - 1
-            while accumulator[max_gray] >= (max - clip_hist_percent):
-                max_gray -= 1
+
+            try:
+                while accumulator[max_gray] >= (max_ - clip_hist_percent):
+                    max_gray -= 1
+            except IndexError as e:
+                max_gray = min_gray + 1
+            
 
         input_range = max_gray - min_gray
 
