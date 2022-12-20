@@ -23,7 +23,7 @@ class CoreManager:
         self.is_mission_over = rospy.Subscriber('/mission/is_over', UInt8, self.cbMissionOver, queue_size=1)
 
         self.missions = Enum("missions", "traffic_light intersection construction parking level_crossing tunnel finish")
-        self.current_mission = self.missions.tunnel.value
+        self.current_mission = self.missions.traffic_light.value
         self.current_mission_launch = None
 
         self.actions = Enum("actions", "shutdown launch")
