@@ -76,6 +76,7 @@ class DetectLevel():
         self.lightness_red_l = rospy.get_param("~detect/level/red/lightness_l", 79)
         self.lightness_red_h = rospy.get_param("~detect/level/red/lightness_h", 255)
         self.counter = 1
+        self.cnt = 0
         self.is_calibration_mode = rospy.get_param("~is_detection_calibration_mode", False)
         if self.is_calibration_mode == True:
             srv_detect_lane = Server(DetectLevelParamsConfig, self.cbGetDetectLevelParam)
@@ -302,7 +303,7 @@ class DetectLevel():
         # if detected 3 red rectangular
         rospy.loginfo("keypts len:")
         rospy.loginfo(str(len(keypts)))
-        if len(keypts) == 3:
+        if len(keypts) >= 3:
             for i in range(3):
                 mean_x = mean_x + keypts[i].pt[0]/3
                 mean_y = mean_y + keypts[i].pt[1]/3
@@ -331,12 +332,15 @@ class DetectLevel():
                     is_level_detected = True
                     self.stop_bar_state = 'slowdown'
                 else:
+                    self.cnt = 0
                     is_level_close = True
                     self.stop_bar_state = 'stop'
 
-        elif len(keypts) <= 1:
-            is_level_opened = True
-            self.stop_bar_state = 'go'
+        elif len(keypts) <= 2:
+            self.cnt += 1
+            if self.cnt > 2:
+                is_level_opened = True
+                self.stop_bar_state = 'go'
 
         if self.pub_image_type == "compressed":
             # publishes level image in compressed type

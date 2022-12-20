@@ -47,7 +47,7 @@ class DetectIntersection():
             ("left", 20),
             ("forward", 0.15),
             ("turn_correct", 90),
-            ("forward", 0.2),
+            ("forward", 0.1),
             # ("go_while_color", 95),
             # ("forward", 0.20),
             # ("turn_correct", 70),
