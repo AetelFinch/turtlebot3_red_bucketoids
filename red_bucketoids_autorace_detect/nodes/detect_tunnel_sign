@@ -48,7 +48,7 @@ class DetectSign():
         dir_path = dir_path.replace('red_bucketoids_autorace_detect/nodes', 'red_bucketoids_autorace_detect/')
         dir_path += 'image/'
 
-        self.img_tunnel = cv2.imread(dir_path + 'tunnel.png',0)       # trainImage3
+        self.img_tunnel = cv2.imread(dir_path + 'new_tunnel.png',0)       # trainImage3
         self.kp_tunnel, self.des_tunnel = self.sift.detectAndCompute(self.img_tunnel,None)
 
         FLANN_INDEX_KDTREE = 0
